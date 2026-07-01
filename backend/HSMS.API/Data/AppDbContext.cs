@@ -17,6 +17,8 @@ namespace HSMS.API.Data
         public DbSet<Supplier> Suppliers => Set<Supplier>();
         public DbSet<Product> Products => Set<Product>();
         public DbSet<StockLog> StockLogs => Set<StockLog>();
+        public DbSet<Sale> Sales => Set<Sale>();
+        public DbSet<SaleItem> SaleItems => Set<SaleItem>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -76,6 +78,56 @@ namespace HSMS.API.Data
 
             modelBuilder.Entity<StockLog>()
                 .Property(stockLog => stockLog.ChangeAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Sale>()
+                .HasIndex(sale => sale.InvoiceNumber)
+                .IsUnique();
+
+            modelBuilder.Entity<Sale>()
+                .HasOne(sale => sale.SoldByUser)
+                .WithMany()
+                .HasForeignKey(sale => sale.SoldByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Sale>()
+                .Property(sale => sale.TotalAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Sale>()
+                .Property(sale => sale.TotalProfit)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SaleItem>()
+                .HasOne(saleItem => saleItem.Sale)
+                .WithMany(sale => sale.SaleItems)
+                .HasForeignKey(saleItem => saleItem.SaleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SaleItem>()
+                .HasOne(saleItem => saleItem.Product)
+                .WithMany()
+                .HasForeignKey(saleItem => saleItem.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SaleItem>()
+                .Property(saleItem => saleItem.PurchasePriceAtSale)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SaleItem>()
+                .Property(saleItem => saleItem.MinimumSellingPriceAtSale)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SaleItem>()
+                .Property(saleItem => saleItem.ActualSellingPrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SaleItem>()
+                .Property(saleItem => saleItem.LineTotal)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SaleItem>()
+                .Property(saleItem => saleItem.LineProfit)
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<ShopSettings>()
