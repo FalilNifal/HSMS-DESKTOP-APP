@@ -199,6 +199,117 @@ namespace HSMS.API.Controllers
             return NoContent();
         }
 
+        [HttpPost("{id:int}/reactivate")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> Reactivate(int id)
+        {
+            var product = await _context.Products.FirstOrDefaultAsync(item => item.Id == id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            product.IsActive = true;
+            product.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpPost("import")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<ActionResult<ImportProductsResponseDto>> Import([FromBody] ImportProductsRequestDto request)
+        {
+            var response = new ImportProductsResponseDto();
+            if (request.Rows == null || request.Rows.Count == 0)
+            {
+                return Ok(response);
+            }
+
+            var now = DateTime.Now;
+
+            var categories = (await _context.Categories.ToListAsync())
+                .ToDictionary(category => category.Name.ToLowerInvariant(), category => category);
+            var suppliers = (await _context.Suppliers.ToListAsync())
+                .GroupBy(supplier => supplier.Name.ToLowerInvariant())
+                .ToDictionary(group => group.Key, group => group.First());
+            var existingSkus = (await _context.Products.Select(product => product.SKU).ToListAsync())
+                .Select(sku => sku.ToLowerInvariant())
+                .ToHashSet();
+            var batchSkus = new HashSet<string>();
+
+            for (var index = 0; index < request.Rows.Count; index++)
+            {
+                var row = request.Rows[index];
+                var rowNumber = index + 1;
+                var name = (row.Name ?? string.Empty).Trim();
+                var sku = (row.SKU ?? string.Empty).Trim();
+                var categoryName = (row.CategoryName ?? string.Empty).Trim();
+                var supplierName = (row.SupplierName ?? string.Empty).Trim();
+
+                string? error = null;
+                if (name.Length == 0) error = "Name is required.";
+                else if (sku.Length == 0) error = "SKU is required.";
+                else if (categoryName.Length == 0) error = "Category is required.";
+                else if (row.PurchasePrice < 0) error = "Purchase price must be 0 or more.";
+                else if (row.MinimumSellingPrice < row.PurchasePrice) error = "Minimum selling price must be greater than or equal to purchase price.";
+                else if (row.StockQuantity < 0) error = "Stock quantity must be 0 or more.";
+                else if (row.LowStockLevel < 0) error = "Low-stock level must be 0 or more.";
+
+                if (error != null)
+                {
+                    response.Errors.Add(new ImportProductErrorDto { RowNumber = rowNumber, SKU = sku, Message = error });
+                    continue;
+                }
+
+                var skuLower = sku.ToLowerInvariant();
+                if (existingSkus.Contains(skuLower) || batchSkus.Contains(skuLower))
+                {
+                    response.SkippedCount++;
+                    continue;
+                }
+
+                if (!categories.TryGetValue(categoryName.ToLowerInvariant(), out var category))
+                {
+                    category = new Category { Name = categoryName, IsActive = true, CreatedAt = now, UpdatedAt = now };
+                    _context.Categories.Add(category);
+                    categories[categoryName.ToLowerInvariant()] = category;
+                }
+
+                Supplier? supplier = null;
+                if (supplierName.Length > 0)
+                {
+                    if (!suppliers.TryGetValue(supplierName.ToLowerInvariant(), out supplier))
+                    {
+                        supplier = new Supplier { Name = supplierName, IsActive = true, CreatedAt = now, UpdatedAt = now };
+                        _context.Suppliers.Add(supplier);
+                        suppliers[supplierName.ToLowerInvariant()] = supplier;
+                    }
+                }
+
+                _context.Products.Add(new Product
+                {
+                    Name = name,
+                    SKU = sku,
+                    Category = category,
+                    Supplier = supplier,
+                    PurchasePrice = row.PurchasePrice,
+                    MinimumSellingPrice = row.MinimumSellingPrice,
+                    StockQuantity = row.StockQuantity,
+                    LowStockLevel = row.LowStockLevel,
+                    IsActive = true,
+                    CreatedAt = now,
+                    UpdatedAt = now
+                });
+
+                batchSkus.Add(skuLower);
+                response.CreatedCount++;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(response);
+        }
+
         private IQueryable<ProductResponseDto> BuildProductQuery(bool isCashier)
         {
             return _context.Products

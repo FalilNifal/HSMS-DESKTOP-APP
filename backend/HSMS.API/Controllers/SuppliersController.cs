@@ -108,6 +108,22 @@ namespace HSMS.API.Controllers
             return NoContent();
         }
 
+        [HttpPost("{id:int}/reactivate")]
+        public async Task<IActionResult> Reactivate(int id)
+        {
+            var supplier = await _context.Suppliers.FirstOrDefaultAsync(item => item.Id == id);
+            if (supplier == null)
+            {
+                return NotFound();
+            }
+
+            supplier.IsActive = true;
+            supplier.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         private static SupplierResponseDto ToResponse(Supplier supplier)
         {
             return new SupplierResponseDto

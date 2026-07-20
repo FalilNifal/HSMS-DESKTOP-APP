@@ -114,6 +114,22 @@ namespace HSMS.API.Controllers
             return NoContent();
         }
 
+        [HttpPost("{id:int}/reactivate")]
+        public async Task<IActionResult> Reactivate(int id)
+        {
+            var category = await _context.Categories.FirstOrDefaultAsync(item => item.Id == id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            category.IsActive = true;
+            category.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         private static CategoryResponseDto ToResponse(Category category)
         {
             return new CategoryResponseDto
