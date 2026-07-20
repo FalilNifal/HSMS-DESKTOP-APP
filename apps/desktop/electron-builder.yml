@@ -1,0 +1,32 @@
+appId: com.hsms.desktop
+productName: Janatha Hardware
+copyright: Copyright © 2026 HSMS
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - out/**/*
+  - package.json
+
+# The self-contained .NET API (published to backend/HSMS.API/publish) is shipped
+# inside the installer at resources/backend. The main process spawns it on start.
+# Run the publish BEFORE `npm run build:win` (see PACKAGING.md).
+extraResources:
+  - from: ../../backend/HSMS.API/publish
+    to: backend
+    filter: ["**/*"]
+
+win:
+  target:
+    - nsis
+  icon: build/icon.ico
+  artifactName: ${productName}-Setup-${version}.${ext}
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true

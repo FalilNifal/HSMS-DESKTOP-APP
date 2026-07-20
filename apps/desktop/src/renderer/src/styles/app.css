@@ -1,0 +1,102 @@
+/* ── Surfaces ─────────────────────────────────────────────
+   Slightly muted app background so white cards read as elevated
+   (the clean/minimal, shadcn-style contrast). Header + navbar stay
+   white; only the main content area picks up the muted tone. */
+[data-mantine-color-scheme='light'] body {
+  background-color: var(--mantine-color-gray-0);
+}
+
+[data-mantine-color-scheme='light'] .mantine-AppShell-main {
+  background-color: var(--mantine-color-gray-0);
+}
+
+/* ── Navigation links ────────────────────────────────────── */
+.mantine-NavLink-root {
+  border-radius: var(--mantine-radius-md);
+  font-weight: 500;
+}
+
+.mantine-NavLink-root:hover {
+  background-color: var(--mantine-color-gray-1);
+}
+
+[data-mantine-color-scheme='dark'] .mantine-NavLink-root:hover {
+  background-color: var(--mantine-color-dark-5);
+}
+
+/* ── POS product picker rows ─────────────────────────────── */
+.pos-product-row {
+  border-radius: var(--mantine-radius-md);
+  transition: background-color 120ms ease;
+}
+
+.pos-product-row:hover {
+  background-color: var(--mantine-color-gray-1);
+}
+
+[data-mantine-color-scheme='dark'] .pos-product-row:hover {
+  background-color: var(--mantine-color-dark-5);
+}
+
+/* ── Motion ──────────────────────────────────────────────── */
+@keyframes hsms-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hsms-animate-in {
+  animation: hsms-fade-in-up 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hsms-hover-lift {
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease;
+}
+
+.hsms-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--mantine-shadow-md);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hsms-animate-in,
+  .hsms-hover-lift {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ── Thin, unobtrusive scrollbars ────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--mantine-color-gray-4) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--mantine-color-gray-4);
+  border-radius: 8px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--mantine-color-gray-5);
+}
+
+[data-mantine-color-scheme='dark'] *::-webkit-scrollbar-thumb {
+  background-color: var(--mantine-color-dark-3);
+  background-clip: content-box;
+}

@@ -1,0 +1,29 @@
+/*
+ * Print scoping: when the browser/Electron print dialog runs, hide everything
+ * except the receipt (marked with id="print-receipt"). This lets a single
+ * window.print() call produce a clean invoice without the app chrome.
+ */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #print-receipt,
+  #print-receipt * {
+    visibility: visible;
+  }
+
+  #print-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    color: #000;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
