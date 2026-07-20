@@ -47,6 +47,22 @@ namespace HSMS.API.Controllers
                 return BadRequest(new { message = "Duplicate product entries in the same sale are not allowed." });
             }
 
+            var isCredit = string.Equals(request.PaymentMethod?.Trim(), "Credit", StringComparison.OrdinalIgnoreCase);
+            Customer? customer = null;
+            if (request.CustomerId.HasValue)
+            {
+                customer = await _context.Customers.FirstOrDefaultAsync(item => item.Id == request.CustomerId.Value && item.IsActive);
+                if (customer == null)
+                {
+                    return BadRequest(new { message = "The selected customer is invalid or inactive." });
+                }
+            }
+
+            if (isCredit && customer == null)
+            {
+                return BadRequest(new { message = "A customer is required for a credit sale." });
+            }
+
             var productIds = request.Items.Select(item => item.ProductId).Distinct().ToList();
             var products = await _context.Products
                 .Where(product => productIds.Contains(product.Id))
@@ -94,6 +110,7 @@ namespace HSMS.API.Controllers
             {
                 InvoiceNumber = invoiceNumber,
                 SoldByUserId = currentUser.Id,
+                CustomerId = customer?.Id,
                 PaymentMethod = request.PaymentMethod.Trim(),
                 CreatedAt = now
             };
@@ -138,8 +155,25 @@ namespace HSMS.API.Controllers
                 });
             }
 
-            sale.TotalAmount = totalAmount;
+            var shopSettings = await _context.ShopSettings.FirstOrDefaultAsync(settings => settings.Id == 1);
+            var taxRate = shopSettings != null ? shopSettings.TaxRatePercent : 0m;
+            var taxAmount = Math.Round(totalAmount * taxRate / 100m, 2);
+            var grandTotal = totalAmount + taxAmount;
+
+            sale.TaxAmount = taxAmount;
+            sale.TotalAmount = grandTotal;
             sale.TotalProfit = totalProfit;
+
+            if (isCredit && customer != null)
+            {
+                if (customer.CreditLimit > 0 && customer.OutstandingBalance + grandTotal > customer.CreditLimit)
+                {
+                    return BadRequest(new { message = $"This sale would exceed {customer.Name}'s credit limit." });
+                }
+
+                customer.OutstandingBalance += grandTotal;
+                customer.UpdatedAt = now;
+            }
 
             _context.Sales.Add(sale);
             await _context.SaveChangesAsync();
@@ -273,6 +307,9 @@ namespace HSMS.API.Controllers
                 CashierName = sale.SoldByUser != null ? sale.SoldByUser.FullName : string.Empty,
                 CreatedAt = sale.CreatedAt,
                 PaymentMethod = sale.PaymentMethod,
+                SubTotal = sale.TotalAmount - sale.TaxAmount,
+                TaxAmount = sale.TaxAmount,
+                TaxLabel = shopSettings.TaxLabel,
                 TotalAmount = sale.TotalAmount,
                 Items = sale.SaleItems.Select(item => new InvoiceItemResponseDto
                 {

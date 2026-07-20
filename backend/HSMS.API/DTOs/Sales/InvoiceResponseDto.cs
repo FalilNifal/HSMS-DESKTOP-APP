@@ -18,6 +18,12 @@ namespace HSMS.API.DTOs.Sales
 
         public string PaymentMethod { get; set; } = string.Empty;
 
+        public decimal SubTotal { get; set; }
+
+        public decimal TaxAmount { get; set; }
+
+        public string TaxLabel { get; set; } = "Tax";
+
         public decimal TotalAmount { get; set; }
 
         public List<InvoiceItemResponseDto> Items { get; set; } = new();
