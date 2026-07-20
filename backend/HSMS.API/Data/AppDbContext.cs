@@ -19,6 +19,11 @@ namespace HSMS.API.Data
         public DbSet<StockLog> StockLogs => Set<StockLog>();
         public DbSet<Sale> Sales => Set<Sale>();
         public DbSet<SaleItem> SaleItems => Set<SaleItem>();
+        public DbSet<UserActivityLog> UserActivityLogs => Set<UserActivityLog>();
+        public DbSet<Return> Returns => Set<Return>();
+        public DbSet<ReturnItem> ReturnItems => Set<ReturnItem>();
+        public DbSet<Customer> Customers => Set<Customer>();
+        public DbSet<CustomerPayment> CustomerPayments => Set<CustomerPayment>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -27,6 +32,9 @@ namespace HSMS.API.Data
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)
                 .IsUnique();
+
+            modelBuilder.Entity<UserActivityLog>()
+                .HasIndex(log => log.CreatedAt);
 
             modelBuilder.Entity<User>()
                 .Property(u => u.Role)
@@ -98,6 +106,14 @@ namespace HSMS.API.Data
                 .Property(sale => sale.TotalProfit)
                 .HasPrecision(18, 2);
 
+            modelBuilder.Entity<Sale>()
+                .Property(sale => sale.TaxAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<ShopSettings>()
+                .Property(settings => settings.TaxRatePercent)
+                .HasPrecision(5, 2);
+
             modelBuilder.Entity<SaleItem>()
                 .HasOne(saleItem => saleItem.Sale)
                 .WithMany(sale => sale.SaleItems)
@@ -129,6 +145,64 @@ namespace HSMS.API.Data
             modelBuilder.Entity<SaleItem>()
                 .Property(saleItem => saleItem.LineProfit)
                 .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Return>()
+                .HasIndex(returnEntity => returnEntity.ReturnNumber)
+                .IsUnique();
+
+            modelBuilder.Entity<Return>()
+                .HasOne(returnEntity => returnEntity.ProcessedByUser)
+                .WithMany()
+                .HasForeignKey(returnEntity => returnEntity.ProcessedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Return>()
+                .HasOne(returnEntity => returnEntity.Sale)
+                .WithMany()
+                .HasForeignKey(returnEntity => returnEntity.SaleId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Return>()
+                .Property(returnEntity => returnEntity.TotalRefund)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<ReturnItem>()
+                .HasOne(item => item.Return)
+                .WithMany(returnEntity => returnEntity.Items)
+                .HasForeignKey(item => item.ReturnId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ReturnItem>()
+                .Property(item => item.UnitPrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<ReturnItem>()
+                .Property(item => item.LineRefund)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Customer>()
+                .Property(customer => customer.CreditLimit)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Customer>()
+                .Property(customer => customer.OutstandingBalance)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<CustomerPayment>()
+                .Property(payment => payment.Amount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<CustomerPayment>()
+                .HasOne(payment => payment.Customer)
+                .WithMany()
+                .HasForeignKey(payment => payment.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Sale>()
+                .HasOne(sale => sale.Customer)
+                .WithMany()
+                .HasForeignKey(sale => sale.CustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<ShopSettings>()
                 .HasData(new ShopSettings
