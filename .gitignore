@@ -427,3 +427,17 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# ── HSMS: local runtime data (should never be committed) ──
+# SQLite database + its WAL/SHM sidecars (regenerated on first run)
+*.db
+*.db-shm
+*.db-wal
+# Per-install JWT signing key (generated at runtime, never commit)
+jwt.key
+# Backup archives created at runtime
+backend/HSMS.API/backups/
+# Node / Electron build output
+apps/desktop/out/
+apps/desktop/release/
+node_modules/
