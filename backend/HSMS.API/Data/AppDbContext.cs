@@ -24,6 +24,8 @@ namespace HSMS.API.Data
         public DbSet<ReturnItem> ReturnItems => Set<ReturnItem>();
         public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<CustomerPayment> CustomerPayments => Set<CustomerPayment>();
+        public DbSet<Quotation> Quotations => Set<Quotation>();
+        public DbSet<QuotationItem> QuotationItems => Set<QuotationItem>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -207,6 +209,46 @@ namespace HSMS.API.Data
                 .WithMany()
                 .HasForeignKey(sale => sale.CustomerId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Quotation>()
+                .HasIndex(quotation => quotation.QuotationNumber)
+                .IsUnique();
+
+            modelBuilder.Entity<Quotation>()
+                .HasOne(quotation => quotation.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(quotation => quotation.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Quotation>()
+                .HasOne(quotation => quotation.Customer)
+                .WithMany()
+                .HasForeignKey(quotation => quotation.CustomerId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Quotation>()
+                .Property(quotation => quotation.TotalAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<QuotationItem>()
+                .HasOne(item => item.Quotation)
+                .WithMany(quotation => quotation.Items)
+                .HasForeignKey(item => item.QuotationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<QuotationItem>()
+                .HasOne(item => item.Product)
+                .WithMany()
+                .HasForeignKey(item => item.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<QuotationItem>()
+                .Property(item => item.UnitPrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<QuotationItem>()
+                .Property(item => item.LineTotal)
+                .HasPrecision(18, 2);
 
             modelBuilder.Entity<ShopSettings>()
                 .HasData(new ShopSettings

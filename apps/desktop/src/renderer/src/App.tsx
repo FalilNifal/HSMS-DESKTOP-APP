@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage'
 import ProductsPage from './pages/ProductsPage'
 import PosPage from './pages/PosPage'
 import SalesHistoryPage from './pages/SalesHistoryPage'
+import QuotationsPage from './pages/QuotationsPage'
 import SuppliersPage from './pages/SuppliersPage'
 import CustomersPage from './pages/CustomersPage'
 import ReportsPage from './pages/ReportsPage'
@@ -32,6 +33,7 @@ export default function App(): JSX.Element {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/pos" element={<PosPage />} />
           <Route path="/sales" element={<SalesHistoryPage />} />
+          <Route path="/quotations" element={<QuotationsPage />} />
 
           {/* Admin + Manager */}
           <Route element={<RoleRoute allow={['Admin', 'Manager']} />}>
