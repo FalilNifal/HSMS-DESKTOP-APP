@@ -16,6 +16,7 @@ import PayablesPage from './pages/PayablesPage'
 import CustomersPage from './pages/CustomersPage'
 import ReportsPage from './pages/ReportsPage'
 import ExpensesPage from './pages/ExpensesPage'
+import DayEndPage from './pages/DayEndPage'
 import ReturnsPage from './pages/ReturnsPage'
 import UsersPage from './pages/UsersPage'
 import SettingsPage from './pages/SettingsPage'
@@ -47,6 +48,7 @@ export default function App(): JSX.Element {
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/expenses" element={<ExpensesPage />} />
+            <Route path="/day-end" element={<DayEndPage />} />
             <Route path="/returns" element={<ReturnsPage />} />
           </Route>
 

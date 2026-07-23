@@ -30,6 +30,70 @@ namespace HSMS.API.Controllers
             });
         }
 
+        [HttpGet("z-report")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<ActionResult<ZReportDto>> GetZReport([FromQuery] DateTime date)
+        {
+            var start = date.Date;
+            var end = start.AddDays(1);
+
+            var sales = await GetFilteredSales(start, end);
+            var salesByMethod = sales
+                .GroupBy(sale => string.IsNullOrWhiteSpace(sale.PaymentMethod) ? "Other" : sale.PaymentMethod)
+                .Select(group => new PaymentMethodTotalDto
+                {
+                    Method = group.Key,
+                    Count = group.Count(),
+                    Total = group.Sum(sale => sale.TotalAmount)
+                })
+                .OrderByDescending(item => item.Total)
+                .ToList();
+
+            bool IsCash(string method) => string.Equals(method, "Cash", StringComparison.OrdinalIgnoreCase);
+
+            var cashSales = sales.Where(sale => IsCash(sale.PaymentMethod)).Sum(sale => sale.TotalAmount);
+
+            var refunds = await _context.Returns
+                .Where(item => item.CreatedAt >= start && item.CreatedAt < end)
+                .ToListAsync();
+
+            var expenses = await _context.Expenses
+                .Where(item => item.ExpenseDate >= start && item.ExpenseDate < end)
+                .ToListAsync();
+
+            var customerPayments = await _context.CustomerPayments
+                .Where(item => item.CreatedAt >= start && item.CreatedAt < end)
+                .ToListAsync();
+
+            var supplierPayments = await _context.SupplierPayments
+                .Where(item => item.PaymentDate >= start && item.PaymentDate < end)
+                .ToListAsync();
+
+            var refundsTotal = refunds.Sum(item => item.TotalRefund);
+            var expensesCash = expenses.Where(item => IsCash(item.PaymentMethod)).Sum(item => item.Amount);
+            var customerPaymentsCash = customerPayments.Where(item => IsCash(item.Method)).Sum(item => item.Amount);
+            var supplierPaymentsCash = supplierPayments.Where(item => IsCash(item.PaymentMethod)).Sum(item => item.Amount);
+
+            return Ok(new ZReportDto
+            {
+                Date = start,
+                SalesByMethod = salesByMethod,
+                SalesCount = sales.Count,
+                GrossSales = sales.Sum(sale => sale.TotalAmount),
+                TaxCollected = sales.Sum(sale => sale.TaxAmount),
+                CashSales = cashSales,
+                RefundsTotal = refundsTotal,
+                RefundsCount = refunds.Count,
+                ExpensesTotal = expenses.Sum(item => item.Amount),
+                ExpensesCash = expensesCash,
+                CustomerPaymentsTotal = customerPayments.Sum(item => item.Amount),
+                CustomerPaymentsCash = customerPaymentsCash,
+                SupplierPaymentsTotal = supplierPayments.Sum(item => item.Amount),
+                SupplierPaymentsCash = supplierPaymentsCash,
+                ExpectedCashInDrawer = cashSales + customerPaymentsCash - refundsTotal - expensesCash - supplierPaymentsCash
+            });
+        }
+
         [HttpGet("monthly-sales")]
         public async Task<ActionResult<MonthlySalesReportDto>> GetMonthlySales([FromQuery] int year, [FromQuery] int month)
         {

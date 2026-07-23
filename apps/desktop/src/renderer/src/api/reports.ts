@@ -144,3 +144,30 @@ export const getReorder = (): Promise<ReorderReport> =>
 
 export const getDeadStock = (days: number): Promise<DeadStockReport> =>
   apiFetch<DeadStockReport>(`/api/reports/dead-stock?days=${days}`)
+
+export interface PaymentMethodTotal {
+  method: string
+  count: number
+  total: number
+}
+
+export interface ZReport {
+  date: string
+  salesByMethod: PaymentMethodTotal[]
+  salesCount: number
+  grossSales: number
+  taxCollected: number
+  cashSales: number
+  refundsTotal: number
+  refundsCount: number
+  expensesTotal: number
+  expensesCash: number
+  customerPaymentsTotal: number
+  customerPaymentsCash: number
+  supplierPaymentsTotal: number
+  supplierPaymentsCash: number
+  expectedCashInDrawer: number
+}
+
+export const getZReport = (date: string): Promise<ZReport> =>
+  apiFetch<ZReport>(`/api/reports/z-report?date=${date}`)
