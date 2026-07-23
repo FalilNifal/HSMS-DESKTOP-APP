@@ -4,6 +4,7 @@ import { useDisclosure } from '@mantine/hooks'
 import {
   IconLayoutDashboard,
   IconPackages,
+  IconClipboardCheck,
   IconShoppingCart,
   IconReceipt2,
   IconFileInvoice,
@@ -43,6 +44,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Sales', path: '/sales', icon: IconReceipt2, roles: ['Admin', 'Manager', 'Cashier'] },
   { label: 'Quotations', path: '/quotations', icon: IconFileInvoice, roles: ['Admin', 'Manager', 'Cashier'] },
   { label: 'Products', path: '/products', icon: IconPackages, roles: ['Admin', 'Manager'] },
+  { label: 'Stock-take', path: '/stock-take', icon: IconClipboardCheck, roles: ['Admin', 'Manager'] },
   { label: 'Suppliers', path: '/suppliers', icon: IconTruck, roles: ['Admin', 'Manager'] },
   { label: 'Customers', path: '/customers', icon: IconUsersGroup, roles: ['Admin', 'Manager'] },
   { label: 'Reports', path: '/reports', icon: IconReportAnalytics, roles: ['Admin', 'Manager'] },

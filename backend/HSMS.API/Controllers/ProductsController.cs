@@ -194,6 +194,70 @@ namespace HSMS.API.Controllers
             return NoContent();
         }
 
+        [HttpPost("stock-take")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<ActionResult<StockTakeResponseDto>> StockTake([FromBody] StockTakeRequestDto request)
+        {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId == null)
+            {
+                return Unauthorized();
+            }
+
+            var response = new StockTakeResponseDto();
+            if (request.Items == null || request.Items.Count == 0)
+            {
+                return Ok(response);
+            }
+
+            var ids = request.Items.Select(item => item.ProductId).Distinct().ToList();
+            var products = await _context.Products
+                .Where(product => ids.Contains(product.Id))
+                .ToDictionaryAsync(product => product.Id);
+
+            var now = DateTime.Now;
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            foreach (var item in request.Items)
+            {
+                if (item.CountedQuantity < 0) continue;
+                if (!products.TryGetValue(item.ProductId, out var product)) continue;
+                if (item.CountedQuantity == product.StockQuantity) continue;
+
+                var oldQuantity = product.StockQuantity;
+
+                _context.StockLogs.Add(new StockLog
+                {
+                    ProductId = product.Id,
+                    OldQuantity = oldQuantity,
+                    NewQuantity = item.CountedQuantity,
+                    ChangeAmount = item.CountedQuantity - oldQuantity,
+                    Reason = "Stock-take reconciliation",
+                    ChangedByUserId = currentUserId.Value,
+                    CreatedAt = now
+                });
+
+                product.StockQuantity = item.CountedQuantity;
+                product.UpdatedAt = now;
+
+                response.Variances.Add(new StockTakeVarianceDto
+                {
+                    ProductId = product.Id,
+                    Name = product.Name,
+                    SKU = product.SKU,
+                    SystemQuantity = oldQuantity,
+                    CountedQuantity = item.CountedQuantity,
+                    Variance = item.CountedQuantity - oldQuantity
+                });
+                response.AdjustedCount++;
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return Ok(response);
+        }
+
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "Admin,Manager")]
         public async Task<IActionResult> Deactivate(int id)

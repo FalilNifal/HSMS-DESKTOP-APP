@@ -88,3 +88,25 @@ export interface ImportResult {
 
 export const importProducts = (rows: ImportProductRow[]): Promise<ImportResult> =>
   apiFetch<ImportResult>('/api/products/import', { method: 'POST', body: { rows } })
+
+export interface StockTakeItem {
+  productId: number
+  countedQuantity: number
+}
+
+export interface StockTakeVariance {
+  productId: number
+  name: string
+  sku: string
+  systemQuantity: number
+  countedQuantity: number
+  variance: number
+}
+
+export interface StockTakeResult {
+  adjustedCount: number
+  variances: StockTakeVariance[]
+}
+
+export const applyStockTake = (items: StockTakeItem[]): Promise<StockTakeResult> =>
+  apiFetch<StockTakeResult>('/api/products/stock-take', { method: 'POST', body: { items } })

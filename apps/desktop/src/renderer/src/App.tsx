@@ -7,6 +7,7 @@ import SetupPage from './pages/SetupPage'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import ProductsPage from './pages/ProductsPage'
+import StockTakePage from './pages/StockTakePage'
 import PosPage from './pages/PosPage'
 import SalesHistoryPage from './pages/SalesHistoryPage'
 import QuotationsPage from './pages/QuotationsPage'
@@ -38,6 +39,7 @@ export default function App(): JSX.Element {
           {/* Admin + Manager */}
           <Route element={<RoleRoute allow={['Admin', 'Manager']} />}>
             <Route path="/products" element={<ProductsPage />} />
+            <Route path="/stock-take" element={<StockTakePage />} />
             <Route path="/suppliers" element={<SuppliersPage />} />
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/reports" element={<ReportsPage />} />
