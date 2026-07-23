@@ -12,6 +12,7 @@ import PosPage from './pages/PosPage'
 import SalesHistoryPage from './pages/SalesHistoryPage'
 import QuotationsPage from './pages/QuotationsPage'
 import SuppliersPage from './pages/SuppliersPage'
+import PayablesPage from './pages/PayablesPage'
 import CustomersPage from './pages/CustomersPage'
 import ReportsPage from './pages/ReportsPage'
 import ExpensesPage from './pages/ExpensesPage'
@@ -42,6 +43,7 @@ export default function App(): JSX.Element {
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/stock-take" element={<StockTakePage />} />
             <Route path="/suppliers" element={<SuppliersPage />} />
+            <Route path="/payables" element={<PayablesPage />} />
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/expenses" element={<ExpensesPage />} />

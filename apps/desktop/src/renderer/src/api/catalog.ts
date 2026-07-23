@@ -15,9 +15,39 @@ export interface Supplier {
   contactPerson: string | null
   phoneNumber: string | null
   address: string | null
+  outstandingBalance: number
   isActive: boolean
   createdAt: string
   updatedAt: string | null
+}
+
+export interface SupplierLedgerEntry {
+  type: 'Bill' | 'Payment'
+  date: string
+  reference: string
+  amount: number
+  notes: string
+}
+
+export interface SupplierLedger {
+  supplierId: number
+  supplierName: string
+  outstandingBalance: number
+  entries: SupplierLedgerEntry[]
+}
+
+export interface CreateSupplierBillRequest {
+  amount: number
+  billNumber?: string | null
+  billDate?: string | null
+  notes?: string | null
+}
+
+export interface CreateSupplierPaymentRequest {
+  amount: number
+  paymentMethod: string
+  paymentDate?: string | null
+  notes?: string | null
 }
 
 export interface CategoryRequest {
@@ -59,3 +89,18 @@ export const deactivateSupplier = (id: number): Promise<void> =>
 
 export const reactivateSupplier = (id: number): Promise<void> =>
   apiFetch<void>(`/api/suppliers/${id}/reactivate`, { method: 'POST' })
+
+export const listPayables = (): Promise<Supplier[]> =>
+  apiFetch<Supplier[]>('/api/suppliers/payables')
+
+export const getSupplierLedger = (id: number): Promise<SupplierLedger> =>
+  apiFetch<SupplierLedger>(`/api/suppliers/${id}/ledger`)
+
+export const addSupplierBill = (id: number, body: CreateSupplierBillRequest): Promise<Supplier> =>
+  apiFetch<Supplier>(`/api/suppliers/${id}/bills`, { method: 'POST', body })
+
+export const addSupplierPayment = (
+  id: number,
+  body: CreateSupplierPaymentRequest
+): Promise<Supplier> =>
+  apiFetch<Supplier>(`/api/suppliers/${id}/payments`, { method: 'POST', body })

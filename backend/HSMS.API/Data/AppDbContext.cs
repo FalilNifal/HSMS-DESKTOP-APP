@@ -27,6 +27,8 @@ namespace HSMS.API.Data
         public DbSet<Quotation> Quotations => Set<Quotation>();
         public DbSet<QuotationItem> QuotationItems => Set<QuotationItem>();
         public DbSet<Expense> Expenses => Set<Expense>();
+        public DbSet<SupplierBill> SupplierBills => Set<SupplierBill>();
+        public DbSet<SupplierPayment> SupplierPayments => Set<SupplierPayment>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -262,6 +264,42 @@ namespace HSMS.API.Data
 
             modelBuilder.Entity<Expense>()
                 .Property(expense => expense.Amount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Supplier>()
+                .Property(supplier => supplier.OutstandingBalance)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SupplierBill>()
+                .HasOne(bill => bill.Supplier)
+                .WithMany()
+                .HasForeignKey(bill => bill.SupplierId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SupplierBill>()
+                .HasOne(bill => bill.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(bill => bill.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SupplierBill>()
+                .Property(bill => bill.Amount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<SupplierPayment>()
+                .HasOne(payment => payment.Supplier)
+                .WithMany()
+                .HasForeignKey(payment => payment.SupplierId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SupplierPayment>()
+                .HasOne(payment => payment.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(payment => payment.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SupplierPayment>()
+                .Property(payment => payment.Amount)
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<ShopSettings>()

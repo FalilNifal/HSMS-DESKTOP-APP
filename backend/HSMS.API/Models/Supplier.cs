@@ -19,6 +19,9 @@ namespace HSMS.API.Models
         [MaxLength(250)]
         public string? Address { get; set; }
 
+        /// <summary>Money currently owed to this supplier (bills minus payments).</summary>
+        public decimal OutstandingBalance { get; set; }
+
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
