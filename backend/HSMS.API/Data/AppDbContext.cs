@@ -26,6 +26,7 @@ namespace HSMS.API.Data
         public DbSet<CustomerPayment> CustomerPayments => Set<CustomerPayment>();
         public DbSet<Quotation> Quotations => Set<Quotation>();
         public DbSet<QuotationItem> QuotationItems => Set<QuotationItem>();
+        public DbSet<Expense> Expenses => Set<Expense>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -248,6 +249,19 @@ namespace HSMS.API.Data
 
             modelBuilder.Entity<QuotationItem>()
                 .Property(item => item.LineTotal)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Expense>()
+                .HasIndex(expense => expense.ExpenseDate);
+
+            modelBuilder.Entity<Expense>()
+                .HasOne(expense => expense.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(expense => expense.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Expense>()
+                .Property(expense => expense.Amount)
                 .HasPrecision(18, 2);
 
             modelBuilder.Entity<ShopSettings>()

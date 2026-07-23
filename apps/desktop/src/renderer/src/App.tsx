@@ -14,6 +14,7 @@ import QuotationsPage from './pages/QuotationsPage'
 import SuppliersPage from './pages/SuppliersPage'
 import CustomersPage from './pages/CustomersPage'
 import ReportsPage from './pages/ReportsPage'
+import ExpensesPage from './pages/ExpensesPage'
 import ReturnsPage from './pages/ReturnsPage'
 import UsersPage from './pages/UsersPage'
 import SettingsPage from './pages/SettingsPage'
@@ -43,6 +44,7 @@ export default function App(): JSX.Element {
             <Route path="/suppliers" element={<SuppliersPage />} />
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/expenses" element={<ExpensesPage />} />
             <Route path="/returns" element={<ReturnsPage />} />
           </Route>
 
