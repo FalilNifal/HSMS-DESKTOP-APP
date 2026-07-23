@@ -4,6 +4,10 @@ export interface CreateSaleItem {
   productId: number
   quantity: number
   actualSellingPrice: number
+  /** Base units per sold unit (1 = base unit). */
+  unitFactor?: number
+  /** Unit label to record, e.g. "box". Defaults to the product's base unit. */
+  unitLabel?: string
 }
 
 export interface CreateSaleRequest {
@@ -18,6 +22,7 @@ export interface SaleItem {
   productNameAtSale: string
   skuAtSale: string
   quantity: number
+  unitLabel: string
   actualSellingPrice: number
   lineTotal: number
   lineProfit: number | null
@@ -39,6 +44,7 @@ export interface InvoiceItem {
   productName: string
   sku: string
   quantity: number
+  unitLabel: string
   actualSellingPrice: number
   lineTotal: number
 }

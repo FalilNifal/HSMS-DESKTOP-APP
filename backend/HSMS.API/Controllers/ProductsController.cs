@@ -84,12 +84,14 @@ namespace HSMS.API.Controllers
         [Authorize(Roles = "Admin,Manager")]
         public async Task<ActionResult<ProductResponseDto>> Create([FromBody] CreateProductRequestDto request)
         {
-            var validationError = await ValidateProductRequest(request.Name, request.SKU, request.PurchasePrice, request.MinimumSellingPrice, request.StockQuantity, request.LowStockLevel, request.CategoryId, request.SupplierId, null);
+            var validationError = await ValidateProductRequest(request.Name, request.SKU, request.PurchasePrice, request.MinimumSellingPrice, request.StockQuantity, request.LowStockLevel, request.CategoryId, request.SupplierId, null)
+                ?? ValidateUnits(request.SecondaryUnit, request.SecondaryUnitFactor);
             if (validationError != null)
             {
                 return validationError;
             }
 
+            var secondaryUnit = string.IsNullOrWhiteSpace(request.SecondaryUnit) ? null : request.SecondaryUnit.Trim();
             var now = DateTime.Now;
             var product = new Product
             {
@@ -101,6 +103,10 @@ namespace HSMS.API.Controllers
                 MinimumSellingPrice = request.MinimumSellingPrice,
                 StockQuantity = request.StockQuantity,
                 LowStockLevel = request.LowStockLevel,
+                Unit = string.IsNullOrWhiteSpace(request.Unit) ? "pcs" : request.Unit.Trim(),
+                SecondaryUnit = secondaryUnit,
+                SecondaryUnitFactor = secondaryUnit == null ? 0 : request.SecondaryUnitFactor,
+                SecondaryUnitPrice = secondaryUnit == null ? 0 : request.SecondaryUnitPrice,
                 IsActive = true,
                 CreatedAt = now,
                 UpdatedAt = now
@@ -122,12 +128,14 @@ namespace HSMS.API.Controllers
                 return NotFound();
             }
 
-            var validationError = await ValidateProductRequest(request.Name, request.SKU, request.PurchasePrice, request.MinimumSellingPrice, request.StockQuantity, request.LowStockLevel, request.CategoryId, request.SupplierId, id);
+            var validationError = await ValidateProductRequest(request.Name, request.SKU, request.PurchasePrice, request.MinimumSellingPrice, request.StockQuantity, request.LowStockLevel, request.CategoryId, request.SupplierId, id)
+                ?? ValidateUnits(request.SecondaryUnit, request.SecondaryUnitFactor);
             if (validationError != null)
             {
                 return validationError;
             }
 
+            var secondaryUnit = string.IsNullOrWhiteSpace(request.SecondaryUnit) ? null : request.SecondaryUnit.Trim();
             product.Name = request.Name.Trim();
             product.SKU = request.SKU.Trim();
             product.CategoryId = request.CategoryId;
@@ -136,6 +144,10 @@ namespace HSMS.API.Controllers
             product.MinimumSellingPrice = request.MinimumSellingPrice;
             product.StockQuantity = request.StockQuantity;
             product.LowStockLevel = request.LowStockLevel;
+            product.Unit = string.IsNullOrWhiteSpace(request.Unit) ? "pcs" : request.Unit.Trim();
+            product.SecondaryUnit = secondaryUnit;
+            product.SecondaryUnitFactor = secondaryUnit == null ? 0 : request.SecondaryUnitFactor;
+            product.SecondaryUnitPrice = secondaryUnit == null ? 0 : request.SecondaryUnitPrice;
             product.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
@@ -329,6 +341,10 @@ namespace HSMS.API.Controllers
                     MinimumSellingPrice = product.MinimumSellingPrice,
                     StockQuantity = product.StockQuantity,
                     LowStockLevel = product.LowStockLevel,
+                    Unit = product.Unit,
+                    SecondaryUnit = product.SecondaryUnit,
+                    SecondaryUnitFactor = product.SecondaryUnitFactor,
+                    SecondaryUnitPrice = product.SecondaryUnitPrice,
                     IsActive = product.IsActive,
                     CreatedAt = product.CreatedAt,
                     UpdatedAt = product.UpdatedAt
@@ -354,6 +370,10 @@ namespace HSMS.API.Controllers
                     MinimumSellingPrice = product.MinimumSellingPrice,
                     StockQuantity = product.StockQuantity,
                     LowStockLevel = product.LowStockLevel,
+                    Unit = product.Unit,
+                    SecondaryUnit = product.SecondaryUnit,
+                    SecondaryUnitFactor = product.SecondaryUnitFactor,
+                    SecondaryUnitPrice = product.SecondaryUnitPrice,
                     IsActive = product.IsActive,
                     CreatedAt = product.CreatedAt,
                     UpdatedAt = product.UpdatedAt
@@ -412,6 +432,21 @@ namespace HSMS.API.Controllers
             if (duplicateSku)
             {
                 return Conflict(new { message = "SKU already exists." });
+            }
+
+            return null;
+        }
+
+        private ActionResult? ValidateUnits(string? secondaryUnit, int secondaryUnitFactor)
+        {
+            if (string.IsNullOrWhiteSpace(secondaryUnit))
+            {
+                return null;
+            }
+
+            if (secondaryUnitFactor < 2)
+            {
+                return BadRequest(new { message = "A bulk unit must contain at least 2 base units." });
             }
 
             return null;

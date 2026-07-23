@@ -24,6 +24,14 @@ namespace HSMS.API.DTOs.Products
 
         public int LowStockLevel { get; set; }
 
+        public string Unit { get; set; } = "pcs";
+
+        public string? SecondaryUnit { get; set; }
+
+        public int SecondaryUnitFactor { get; set; }
+
+        public decimal SecondaryUnitPrice { get; set; }
+
         public bool IsActive { get; set; }
 
         public DateTime CreatedAt { get; set; }

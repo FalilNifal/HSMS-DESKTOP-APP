@@ -12,6 +12,8 @@ namespace HSMS.API.DTOs.Sales
 
         public int Quantity { get; set; }
 
+        public string UnitLabel { get; set; } = "pcs";
+
         public decimal? PurchasePriceAtSale { get; set; }
 
         public decimal? MinimumSellingPriceAtSale { get; set; }

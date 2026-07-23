@@ -13,6 +13,14 @@ export interface Product {
   minimumSellingPrice: number
   stockQuantity: number
   lowStockLevel: number
+  /** Base unit label, e.g. "pcs", "kg", "m". */
+  unit: string
+  /** Optional bulk unit label, e.g. "box". Null = sold only in the base unit. */
+  secondaryUnit: string | null
+  /** Base units per secondary unit (e.g. 12 pcs per box). 0 when no secondary unit. */
+  secondaryUnitFactor: number
+  /** Default selling price for one secondary unit. */
+  secondaryUnitPrice: number
   isActive: boolean
   createdAt: string
   updatedAt: string | null
@@ -27,6 +35,10 @@ export interface ProductWriteRequest {
   minimumSellingPrice: number
   stockQuantity: number
   lowStockLevel: number
+  unit: string
+  secondaryUnit: string | null
+  secondaryUnitFactor: number
+  secondaryUnitPrice: number
 }
 
 export interface UpdateStockRequest {

@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import {
   Alert,
   Button,
+  Divider,
   Group,
   Modal,
   NumberInput,
@@ -43,6 +44,10 @@ interface FormValues {
   minimumSellingPrice: number | string
   stockQuantity: number | string
   lowStockLevel: number | string
+  unit: string
+  secondaryUnit: string
+  secondaryUnitFactor: number | string
+  secondaryUnitPrice: number | string
 }
 
 const EMPTY_VALUES: FormValues = {
@@ -53,7 +58,11 @@ const EMPTY_VALUES: FormValues = {
   purchasePrice: 0,
   minimumSellingPrice: 0,
   stockQuantity: 0,
-  lowStockLevel: 0
+  lowStockLevel: 0,
+  unit: 'pcs',
+  secondaryUnit: '',
+  secondaryUnitFactor: 0,
+  secondaryUnitPrice: 0
 }
 
 export default function ProductFormModal({
@@ -81,7 +90,16 @@ export default function ProductFormModal({
         return null
       },
       stockQuantity: (v) => (Number(v) >= 0 ? null : 'Must be 0 or more'),
-      lowStockLevel: (v) => (Number(v) >= 0 ? null : 'Must be 0 or more')
+      lowStockLevel: (v) => (Number(v) >= 0 ? null : 'Must be 0 or more'),
+      unit: (v) => (v.trim().length === 0 ? 'Unit is required' : null),
+      secondaryUnitFactor: (v, values) => {
+        if (values.secondaryUnit.trim().length === 0) return null
+        return Number(v) >= 2 ? null : 'A bulk unit must contain at least 2 base units'
+      },
+      secondaryUnitPrice: (v, values) => {
+        if (values.secondaryUnit.trim().length === 0) return null
+        return Number(v) > 0 ? null : 'Enter the bulk-unit price'
+      }
     }
   })
 
@@ -96,7 +114,11 @@ export default function ProductFormModal({
         purchasePrice: product.purchasePrice ?? 0,
         minimumSellingPrice: product.minimumSellingPrice,
         stockQuantity: product.stockQuantity,
-        lowStockLevel: product.lowStockLevel
+        lowStockLevel: product.lowStockLevel,
+        unit: product.unit || 'pcs',
+        secondaryUnit: product.secondaryUnit ?? '',
+        secondaryUnitFactor: product.secondaryUnitFactor || 0,
+        secondaryUnitPrice: product.secondaryUnitPrice || 0
       })
     } else {
       form.setValues(EMPTY_VALUES)
@@ -158,7 +180,11 @@ export default function ProductFormModal({
       purchasePrice: Number(values.purchasePrice),
       minimumSellingPrice: Number(values.minimumSellingPrice),
       stockQuantity: Number(values.stockQuantity),
-      lowStockLevel: Number(values.lowStockLevel)
+      lowStockLevel: Number(values.lowStockLevel),
+      unit: values.unit.trim() || 'pcs',
+      secondaryUnit: values.secondaryUnit.trim() || null,
+      secondaryUnitFactor: values.secondaryUnit.trim() ? Number(values.secondaryUnitFactor) : 0,
+      secondaryUnitPrice: values.secondaryUnit.trim() ? Number(values.secondaryUnitPrice) : 0
     })
   }
 
@@ -234,6 +260,43 @@ export default function ProductFormModal({
               min={0}
               allowDecimal={false}
               {...form.getInputProps('lowStockLevel')}
+            />
+            <TextInput
+              label="Unit"
+              withAsterisk
+              description="How this item is stocked & priced (e.g. pcs, kg, m, ft)"
+              placeholder="pcs"
+              {...form.getInputProps('unit')}
+            />
+          </SimpleGrid>
+
+          <Divider
+            label="Bulk unit (optional) — e.g. sell by the box"
+            labelPosition="left"
+          />
+          <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="sm">
+            <TextInput
+              label="Bulk unit name"
+              placeholder="e.g. box, dozen"
+              description="Leave blank to disable"
+              {...form.getInputProps('secondaryUnit')}
+            />
+            <NumberInput
+              label={`Base units per ${form.values.secondaryUnit.trim() || 'bulk unit'}`}
+              min={0}
+              allowDecimal={false}
+              placeholder="e.g. 12"
+              disabled={form.values.secondaryUnit.trim().length === 0}
+              {...form.getInputProps('secondaryUnitFactor')}
+            />
+            <NumberInput
+              label="Bulk unit price"
+              min={0}
+              decimalScale={2}
+              step={0.5}
+              description="Default price per bulk unit"
+              disabled={form.values.secondaryUnit.trim().length === 0}
+              {...form.getInputProps('secondaryUnitPrice')}
             />
           </SimpleGrid>
 

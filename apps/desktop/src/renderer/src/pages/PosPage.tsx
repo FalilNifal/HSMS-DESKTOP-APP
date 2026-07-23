@@ -45,18 +45,39 @@ export interface CartLine {
   productId: number
   name: string
   sku: string
-  minPrice: number
-  stock: number
+  /** Product stock, in base units. */
+  baseStock: number
+  /** Minimum selling price per base unit. */
+  baseMinPrice: number
+  /** Base unit label, e.g. "pcs". */
+  unit: string
+  secondaryUnit: string | null
+  /** Base units per bulk unit (0 = product has no bulk unit). */
+  secondaryUnitFactor: number
+  secondaryUnitPrice: number
   quantity: number
+  /** Price per selected unit. */
   unitPrice: number
+  /** Base units per selected unit (1 = base unit). */
+  unitFactor: number
+  /** Selected unit label. */
+  unitLabel: string
+}
+
+function lineMaxQty(line: CartLine): number {
+  return Math.floor(line.baseStock / (line.unitFactor || 1))
+}
+
+function lineMinPrice(line: CartLine): number {
+  return line.baseMinPrice * (line.unitFactor || 1)
 }
 
 function lineIsInvalid(line: CartLine): boolean {
   return (
     line.quantity < 1 ||
-    line.quantity > line.stock ||
+    line.quantity > lineMaxQty(line) ||
     Number.isNaN(line.unitPrice) ||
-    line.unitPrice < line.minPrice
+    line.unitPrice < lineMinPrice(line)
   )
 }
 
@@ -92,21 +113,28 @@ export default function PosPage(): JSX.Element {
     setCart((prev) => {
       const existing = prev.find((l) => l.productId === product.id)
       if (existing) {
-        if (existing.quantity >= product.stockQuantity) return prev
+        if (existing.quantity >= lineMaxQty(existing)) return prev
         return prev.map((l) =>
           l.productId === product.id ? { ...l, quantity: l.quantity + 1 } : l
         )
       }
+      const unit = product.unit || 'pcs'
       return [
         ...prev,
         {
           productId: product.id,
           name: product.name,
           sku: product.sku,
-          minPrice: product.minimumSellingPrice,
-          stock: product.stockQuantity,
+          baseStock: product.stockQuantity,
+          baseMinPrice: product.minimumSellingPrice,
+          unit,
+          secondaryUnit: product.secondaryUnit,
+          secondaryUnitFactor: product.secondaryUnitFactor || 0,
+          secondaryUnitPrice: product.secondaryUnitPrice || 0,
           quantity: 1,
-          unitPrice: product.minimumSellingPrice
+          unitPrice: product.minimumSellingPrice,
+          unitFactor: 1,
+          unitLabel: unit
         }
       ]
     })
@@ -114,6 +142,24 @@ export default function PosPage(): JSX.Element {
 
   const patchLine = (productId: number, patch: Partial<CartLine>): void => {
     setCart((prev) => prev.map((l) => (l.productId === productId ? { ...l, ...patch } : l)))
+  }
+
+  const changeUnit = (line: CartLine, useBulk: boolean): void => {
+    if (useBulk) {
+      patchLine(line.productId, {
+        unitFactor: line.secondaryUnitFactor,
+        unitLabel: line.secondaryUnit ?? line.unit,
+        unitPrice: line.secondaryUnitPrice || line.baseMinPrice * line.secondaryUnitFactor,
+        quantity: 1
+      })
+    } else {
+      patchLine(line.productId, {
+        unitFactor: 1,
+        unitLabel: line.unit,
+        unitPrice: line.baseMinPrice,
+        quantity: 1
+      })
+    }
   }
 
   const removeLine = (productId: number): void => {
@@ -147,7 +193,9 @@ export default function PosPage(): JSX.Element {
         items: cart.map((l) => ({
           productId: l.productId,
           quantity: l.quantity,
-          actualSellingPrice: l.unitPrice
+          actualSellingPrice: l.unitPrice,
+          unitFactor: l.unitFactor || 1,
+          unitLabel: l.unitLabel
         }))
       }),
     onSuccess: async (sale) => {
@@ -288,8 +336,12 @@ export default function PosPage(): JSX.Element {
                 <ScrollArea.Autosize mah={380}>
                   <Stack gap="sm">
                     {cart.map((line) => {
-                      const overStock = line.quantity > line.stock
-                      const belowMin = line.unitPrice < line.minPrice
+                      const factor = line.unitFactor || 1
+                      const maxQty = lineMaxQty(line)
+                      const minPrice = lineMinPrice(line)
+                      const overStock = line.quantity > maxQty
+                      const belowMin = line.unitPrice < minPrice
+                      const hasBulk = line.secondaryUnitFactor >= 2 && !!line.secondaryUnit
                       return (
                         <div key={line.productId}>
                           <Group justify="space-between" wrap="nowrap" mb={4}>
@@ -306,16 +358,32 @@ export default function PosPage(): JSX.Element {
                               <IconX size={16} />
                             </ActionIcon>
                           </Group>
+                          {hasBulk && (
+                            <Select
+                              size="xs"
+                              mb={4}
+                              data={[
+                                { value: 'base', label: `By ${line.unit}` },
+                                {
+                                  value: 'bulk',
+                                  label: `By ${line.secondaryUnit} (${line.secondaryUnitFactor} ${line.unit})`
+                                }
+                              ]}
+                              value={factor === 1 ? 'base' : 'bulk'}
+                              onChange={(v) => changeUnit(line, v === 'bulk')}
+                              allowDeselect={false}
+                            />
+                          )}
                           <Group gap="xs" wrap="nowrap" align="flex-start">
                             <NumberInput
                               size="xs"
                               w={72}
                               min={1}
-                              max={line.stock}
+                              max={maxQty}
                               allowDecimal={false}
                               value={line.quantity}
                               onChange={(v) => patchLine(line.productId, { quantity: Number(v) })}
-                              error={overStock ? `Max ${line.stock}` : undefined}
+                              error={overStock ? `Max ${maxQty}` : undefined}
                             />
                             <Text size="sm" mt={6}>
                               ×
@@ -327,12 +395,17 @@ export default function PosPage(): JSX.Element {
                               decimalScale={2}
                               value={line.unitPrice}
                               onChange={(v) => patchLine(line.productId, { unitPrice: Number(v) })}
-                              error={belowMin ? `Min ${formatMoney(line.minPrice)}` : undefined}
+                              error={belowMin ? `Min ${formatMoney(minPrice)}` : undefined}
                             />
                             <Text size="sm" fw={600} ml="auto" mt={6}>
                               {formatMoney(line.quantity * (Number.isNaN(line.unitPrice) ? 0 : line.unitPrice))}
                             </Text>
                           </Group>
+                          {factor > 1 && (
+                            <Text size="xs" c="dimmed" mt={2}>
+                              = {line.quantity * factor} {line.unit} · {line.baseStock} in stock
+                            </Text>
+                          )}
                         </div>
                       )
                     })}

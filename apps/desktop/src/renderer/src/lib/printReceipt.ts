@@ -17,7 +17,7 @@ function buildReceiptHtml(invoice: Invoice): string {
       <div class="item">
         <div class="item-name">${esc(item.productName)}</div>
         <div class="row">
-          <span class="muted">${item.quantity} &times; ${esc(formatMoney(item.actualSellingPrice))}</span>
+          <span class="muted">${item.quantity}${item.unitLabel ? ' ' + esc(item.unitLabel) : ''} &times; ${esc(formatMoney(item.actualSellingPrice))}</span>
           <span>${esc(formatMoney(item.lineTotal))}</span>
         </div>
       </div>`

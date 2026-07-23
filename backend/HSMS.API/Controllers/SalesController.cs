@@ -86,12 +86,14 @@ namespace HSMS.API.Controllers
                     return BadRequest(new { message = "Quantity must be greater than 0." });
                 }
 
-                if (item.ActualSellingPrice < product.MinimumSellingPrice)
+                var unitFactor = item.UnitFactor < 1 ? 1 : item.UnitFactor;
+
+                if (item.ActualSellingPrice < product.MinimumSellingPrice * unitFactor)
                 {
                     return BadRequest(new { message = $"Selling price for '{product.Name}' cannot be below the minimum selling price." });
                 }
 
-                if (product.StockQuantity < item.Quantity)
+                if (product.StockQuantity < item.Quantity * unitFactor)
                 {
                     return BadRequest(new { message = $"Insufficient stock for '{product.Name}'." });
                 }
@@ -121,13 +123,16 @@ namespace HSMS.API.Controllers
             foreach (var item in request.Items)
             {
                 var product = products[item.ProductId];
+                var unitFactor = item.UnitFactor < 1 ? 1 : item.UnitFactor;
+                var baseQuantity = item.Quantity * unitFactor;
+                var purchasePerUnit = product.PurchasePrice * unitFactor;
                 var lineTotal = item.ActualSellingPrice * item.Quantity;
-                var lineProfit = (item.ActualSellingPrice - product.PurchasePrice) * item.Quantity;
+                var lineProfit = (item.ActualSellingPrice - purchasePerUnit) * item.Quantity;
 
                 totalAmount += lineTotal;
                 totalProfit += lineProfit;
 
-                product.StockQuantity -= item.Quantity;
+                product.StockQuantity -= baseQuantity;
                 product.UpdatedAt = now;
 
                 sale.SaleItems.Add(new SaleItem
@@ -136,8 +141,10 @@ namespace HSMS.API.Controllers
                     ProductNameAtSale = product.Name,
                     SKUAtSale = product.SKU,
                     Quantity = item.Quantity,
-                    PurchasePriceAtSale = product.PurchasePrice,
-                    MinimumSellingPriceAtSale = product.MinimumSellingPrice,
+                    UnitLabel = string.IsNullOrWhiteSpace(item.UnitLabel) ? product.Unit : item.UnitLabel.Trim(),
+                    UnitFactor = unitFactor,
+                    PurchasePriceAtSale = purchasePerUnit,
+                    MinimumSellingPriceAtSale = product.MinimumSellingPrice * unitFactor,
                     ActualSellingPrice = item.ActualSellingPrice,
                     LineTotal = lineTotal,
                     LineProfit = lineProfit
@@ -146,9 +153,9 @@ namespace HSMS.API.Controllers
                 _context.StockLogs.Add(new StockLog
                 {
                     ProductId = product.Id,
-                    OldQuantity = product.StockQuantity + item.Quantity,
+                    OldQuantity = product.StockQuantity + baseQuantity,
                     NewQuantity = product.StockQuantity,
-                    ChangeAmount = -item.Quantity,
+                    ChangeAmount = -baseQuantity,
                     Reason = $"Sale {invoiceNumber}",
                     ChangedByUserId = currentUser.Id,
                     CreatedAt = now
@@ -238,6 +245,7 @@ namespace HSMS.API.Controllers
                         ProductNameAtSale = item.ProductNameAtSale,
                         SKUAtSale = item.SKUAtSale,
                         Quantity = item.Quantity,
+                        UnitLabel = item.UnitLabel,
                         PurchasePriceAtSale = hideProfit ? null : item.PurchasePriceAtSale,
                         MinimumSellingPriceAtSale = hideProfit ? null : item.MinimumSellingPriceAtSale,
                         ActualSellingPrice = item.ActualSellingPrice,
@@ -316,6 +324,7 @@ namespace HSMS.API.Controllers
                     ProductName = item.ProductNameAtSale,
                     SKU = item.SKUAtSale,
                     Quantity = item.Quantity,
+                    UnitLabel = item.UnitLabel,
                     ActualSellingPrice = item.ActualSellingPrice,
                     LineTotal = item.LineTotal
                 }).ToList()
@@ -350,6 +359,7 @@ namespace HSMS.API.Controllers
                         ProductNameAtSale = item.ProductNameAtSale,
                         SKUAtSale = item.SKUAtSale,
                         Quantity = item.Quantity,
+                        UnitLabel = item.UnitLabel,
                         PurchasePriceAtSale = hideProfit ? null : item.PurchasePriceAtSale,
                         MinimumSellingPriceAtSale = hideProfit ? null : item.MinimumSellingPriceAtSale,
                         ActualSellingPrice = item.ActualSellingPrice,

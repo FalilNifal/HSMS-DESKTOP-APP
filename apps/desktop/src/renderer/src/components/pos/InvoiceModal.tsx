@@ -68,7 +68,8 @@ export default function InvoiceModal({ saleId, onClose, onNewSale }: InvoiceModa
                   <Text size="sm">{item.productName}</Text>
                   <Group justify="space-between">
                     <Text size="xs" c="dimmed">
-                      {item.quantity} × {formatMoney(item.actualSellingPrice)}
+                      {item.quantity}
+                      {item.unitLabel ? ` ${item.unitLabel}` : ''} × {formatMoney(item.actualSellingPrice)}
                     </Text>
                     <Text size="sm">{formatMoney(item.lineTotal)}</Text>
                   </Group>

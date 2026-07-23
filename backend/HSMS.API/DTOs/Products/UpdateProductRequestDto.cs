@@ -27,5 +27,17 @@ namespace HSMS.API.DTOs.Products
 
         [Range(0, int.MaxValue)]
         public int LowStockLevel { get; set; }
+
+        [MaxLength(20)]
+        public string Unit { get; set; } = "pcs";
+
+        [MaxLength(20)]
+        public string? SecondaryUnit { get; set; }
+
+        [Range(0, int.MaxValue)]
+        public int SecondaryUnitFactor { get; set; }
+
+        [Range(0, double.MaxValue)]
+        public decimal SecondaryUnitPrice { get; set; }
     }
 }

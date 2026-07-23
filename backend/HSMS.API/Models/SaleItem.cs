@@ -14,6 +14,12 @@ namespace HSMS.API.Models
 
         public int Quantity { get; set; }
 
+        /// <summary>Unit this line was sold in, e.g. "pcs" or "box".</summary>
+        public string UnitLabel { get; set; } = "pcs";
+
+        /// <summary>Base units per sold unit. Base stock deducted = Quantity * UnitFactor.</summary>
+        public int UnitFactor { get; set; } = 1;
+
         public decimal PurchasePriceAtSale { get; set; }
 
         public decimal MinimumSellingPriceAtSale { get; set; }

@@ -72,6 +72,10 @@ namespace HSMS.API.Data
                 .Property(product => product.MinimumSellingPrice)
                 .HasPrecision(18, 2);
 
+            modelBuilder.Entity<Product>()
+                .Property(product => product.SecondaryUnitPrice)
+                .HasPrecision(18, 2);
+
             modelBuilder.Entity<StockLog>()
                 .HasOne(stockLog => stockLog.Product)
                 .WithMany(product => product.StockLogs)
