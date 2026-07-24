@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Alert,
   Button,
+  Center,
   Divider,
   Group,
+  Loader,
   Modal,
   NumberInput,
   Stack,
@@ -21,14 +23,21 @@ import { formatMoney } from '../../lib/format'
 interface NewReturnModalProps {
   opened: boolean
   onClose: () => void
+  /** When provided, the modal opens with this invoice pre-filled and auto-loaded. */
+  initialInvoice?: string
 }
 
-export default function NewReturnModal({ opened, onClose }: NewReturnModalProps): JSX.Element {
+export default function NewReturnModal({
+  opened,
+  onClose,
+  initialInvoice
+}: NewReturnModalProps): JSX.Element {
   const queryClient = useQueryClient()
   const [invoice, setInvoice] = useState('')
   const [sale, setSale] = useState<ReturnableSale | null>(null)
   const [quantities, setQuantities] = useState<Record<number, number>>({})
   const [reason, setReason] = useState('')
+  const fromBill = !!initialInvoice
 
   const reset = (): void => {
     setInvoice('')
@@ -60,6 +69,15 @@ export default function NewReturnModal({ opened, onClose }: NewReturnModalProps)
       })
     }
   })
+
+  // When opened from an existing bill, pre-fill the invoice and load it automatically.
+  useEffect(() => {
+    if (opened && initialInvoice) {
+      setInvoice(initialInvoice)
+      loadMutation.mutate(initialInvoice)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opened, initialInvoice])
 
   const createMutation = useMutation({
     mutationFn: () => {
@@ -104,19 +122,28 @@ export default function NewReturnModal({ opened, onClose }: NewReturnModalProps)
             leftSection={<IconSearch size={16} />}
             value={invoice}
             onChange={(e) => setInvoice(e.currentTarget.value)}
+            readOnly={fromBill}
             style={{ flex: 1 }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && invoice.trim()) loadMutation.mutate(invoice)
+              if (!fromBill && e.key === 'Enter' && invoice.trim()) loadMutation.mutate(invoice)
             }}
           />
-          <Button
-            onClick={() => loadMutation.mutate(invoice)}
-            disabled={invoice.trim().length === 0}
-            loading={loadMutation.isPending}
-          >
-            Load sale
-          </Button>
+          {!fromBill && (
+            <Button
+              onClick={() => loadMutation.mutate(invoice)}
+              disabled={invoice.trim().length === 0}
+              loading={loadMutation.isPending}
+            >
+              Load sale
+            </Button>
+          )}
         </Group>
+
+        {fromBill && loadMutation.isPending && (
+          <Center py="md">
+            <Loader size="sm" />
+          </Center>
+        )}
 
         {sale && (
           <>

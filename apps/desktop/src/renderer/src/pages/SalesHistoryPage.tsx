@@ -14,13 +14,15 @@ import {
   Title,
   Tooltip
 } from '@mantine/core'
-import { IconAlertTriangle, IconPrinter, IconSearch } from '@tabler/icons-react'
+import { IconAlertTriangle, IconPrinter, IconReceiptRefund, IconSearch } from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ApiError } from '../api/client'
 import { getInvoice, listSales } from '../api/sales'
 import { printInvoice } from '../lib/printReceipt'
 import { formatDateTime, formatMoney } from '../lib/format'
+import { useCurrentUser } from '../store/authStore'
+import NewReturnModal from '../components/returns/NewReturnModal'
 
 function toDateInput(date: Date): string {
   const y = date.getFullYear()
@@ -37,6 +39,9 @@ export default function SalesHistoryPage(): JSX.Element {
   const [fromDate, setFromDate] = useState(DEFAULT_FROM)
   const [toDate, setToDate] = useState(DEFAULT_TO)
   const [invoice, setInvoice] = useState('')
+  const [returnInvoice, setReturnInvoice] = useState<string | null>(null)
+  const user = useCurrentUser()
+  const canReturn = user?.role === 'Admin' || user?.role === 'Manager'
 
   const salesQuery = useQuery({
     queryKey: ['sales', fromDate, toDate, invoice],
@@ -105,7 +110,7 @@ export default function SalesHistoryPage(): JSX.Element {
                   <Table.Th>Payment</Table.Th>
                   <Table.Th ta="center">Items</Table.Th>
                   <Table.Th ta="right">Total</Table.Th>
-                  <Table.Th ta="right">Reprint</Table.Th>
+                  <Table.Th ta="right">Actions</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -128,16 +133,29 @@ export default function SalesHistoryPage(): JSX.Element {
                       <Text fw={600}>{formatMoney(sale.totalAmount)}</Text>
                     </Table.Td>
                     <Table.Td ta="right">
-                      <Tooltip label="Reprint bill">
-                        <ActionIcon
-                          variant="subtle"
-                          color="blue"
-                          loading={reprintMutation.isPending && reprintMutation.variables === sale.id}
-                          onClick={() => reprintMutation.mutate(sale.id)}
-                        >
-                          <IconPrinter size={18} />
-                        </ActionIcon>
-                      </Tooltip>
+                      <Group gap={4} justify="flex-end" wrap="nowrap">
+                        <Tooltip label="Reprint bill">
+                          <ActionIcon
+                            variant="subtle"
+                            color="blue"
+                            loading={reprintMutation.isPending && reprintMutation.variables === sale.id}
+                            onClick={() => reprintMutation.mutate(sale.id)}
+                          >
+                            <IconPrinter size={18} />
+                          </ActionIcon>
+                        </Tooltip>
+                        {canReturn && (
+                          <Tooltip label="Return / refund items from this bill">
+                            <ActionIcon
+                              variant="subtle"
+                              color="orange"
+                              onClick={() => setReturnInvoice(sale.invoiceNumber)}
+                            >
+                              <IconReceiptRefund size={18} />
+                            </ActionIcon>
+                          </Tooltip>
+                        )}
+                      </Group>
                     </Table.Td>
                   </Table.Tr>
                 ))}
@@ -153,6 +171,14 @@ export default function SalesHistoryPage(): JSX.Element {
             {sales.length} sale{sales.length > 1 ? 's' : ''} · total {formatMoney(totalValue)}
           </Text>
         </Group>
+      )}
+
+      {canReturn && (
+        <NewReturnModal
+          opened={returnInvoice !== null}
+          initialInvoice={returnInvoice ?? undefined}
+          onClose={() => setReturnInvoice(null)}
+        />
       )}
     </Stack>
   )
