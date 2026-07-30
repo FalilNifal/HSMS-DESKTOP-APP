@@ -16,7 +16,15 @@ import {
   TextInput,
   Title
 } from '@mantine/core'
-import { IconCashRegister, IconPrinter } from '@tabler/icons-react'
+import {
+  IconCash,
+  IconCashRegister,
+  IconCoin,
+  IconPrinter,
+  IconReceiptRefund,
+  IconReceiptTax
+} from '@tabler/icons-react'
+import StatTile from '../components/StatTile'
 import { useQuery } from '@tanstack/react-query'
 import { getZReport } from '../api/reports'
 import { getShopSettings } from '../api/settings'
@@ -83,13 +91,34 @@ export default function DayEndPage(): JSX.Element {
       ) : (
         <>
           <SimpleGrid cols={{ base: 2, md: 4 }} spacing="sm">
-            <StatCard label="Gross sales" value={formatMoney(report.grossSales)} sub={`${report.salesCount} sale(s)`} />
-            <StatCard label="Tax collected" value={formatMoney(report.taxCollected)} />
-            <StatCard label="Cash sales" value={formatMoney(report.cashSales)} />
-            <StatCard
+            <StatTile
+              label="Gross sales"
+              value={formatMoney(report.grossSales)}
+              sub={`${report.salesCount} sale(s)`}
+              icon={IconCash}
+              color="blue"
+            />
+            <StatTile
+              label="Tax collected"
+              value={formatMoney(report.taxCollected)}
+              icon={IconReceiptTax}
+              color="grape"
+              delay={70}
+            />
+            <StatTile
+              label="Cash sales"
+              value={formatMoney(report.cashSales)}
+              icon={IconCoin}
+              color="teal"
+              delay={140}
+            />
+            <StatTile
               label="Refunds"
               value={formatMoney(report.refundsTotal)}
               sub={`${report.refundsCount} return(s)`}
+              icon={IconReceiptRefund}
+              color="orange"
+              delay={210}
             />
           </SimpleGrid>
 
@@ -192,24 +221,6 @@ export default function DayEndPage(): JSX.Element {
         </>
       )}
     </Stack>
-  )
-}
-
-function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }): JSX.Element {
-  return (
-    <Card withBorder radius="md" padding="md">
-      <Text size="sm" c="dimmed">
-        {label}
-      </Text>
-      <Text fw={800} size="lg" mt={2}>
-        {value}
-      </Text>
-      {sub && (
-        <Text size="xs" c="dimmed">
-          {sub}
-        </Text>
-      )}
-    </Card>
   )
 }
 

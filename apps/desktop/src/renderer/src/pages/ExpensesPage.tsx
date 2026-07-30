@@ -28,6 +28,7 @@ import {
 } from '../api/expenses'
 import { formatMoney } from '../lib/format'
 import ExpenseFormModal from '../components/expenses/ExpenseFormModal'
+import StatTile from '../components/StatTile'
 
 function firstOfMonth(): string {
   const now = new Date()
@@ -106,26 +107,20 @@ export default function ExpensesPage(): JSX.Element {
       </Group>
 
       <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="sm">
-        <Card withBorder radius="md" padding="md">
-          <Group gap="xs">
-            <IconReceiptTax size={20} />
-            <Text size="sm" c="dimmed">
-              Total in range
-            </Text>
-          </Group>
-          <Text fw={800} size="xl" mt={4}>
-            {summary ? formatMoney(summary.total) : '—'}
-          </Text>
-        </Card>
-        {(summary?.byCategory ?? []).slice(0, 3).map((cat) => (
-          <Card key={cat.category} withBorder radius="md" padding="md">
-            <Text size="sm" c="dimmed">
-              {cat.category}
-            </Text>
-            <Text fw={700} size="lg" mt={4}>
-              {formatMoney(cat.total)}
-            </Text>
-          </Card>
+        <StatTile
+          label="Total in range"
+          value={summary ? formatMoney(summary.total) : '—'}
+          icon={IconReceiptTax}
+          color="orange"
+        />
+        {(summary?.byCategory ?? []).slice(0, 3).map((cat, index) => (
+          <StatTile
+            key={cat.category}
+            label={cat.category}
+            value={formatMoney(cat.total)}
+            color="gray"
+            delay={(index + 1) * 60}
+          />
         ))}
       </SimpleGrid>
 

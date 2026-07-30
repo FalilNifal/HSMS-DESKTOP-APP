@@ -32,6 +32,7 @@ import {
   type Supplier
 } from '../api/catalog'
 import { formatMoney } from '../lib/format'
+import StatTile from '../components/StatTile'
 
 const PAYMENT_METHODS = ['Cash', 'Card', 'Bank transfer', 'Cheque', 'Other']
 
@@ -60,17 +61,12 @@ export default function PayablesPage(): JSX.Element {
       <Title order={2}>Supplier payables</Title>
 
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-        <Card withBorder radius="md" padding="md">
-          <Group gap="xs">
-            <IconWallet size={20} />
-            <Text size="sm" c="dimmed">
-              Total owed to suppliers
-            </Text>
-          </Group>
-          <Text fw={800} size="xl" mt={4} c={totalPayable > 0 ? 'red' : undefined}>
-            {formatMoney(totalPayable)}
-          </Text>
-        </Card>
+        <StatTile
+          label="Total owed to suppliers"
+          value={formatMoney(totalPayable)}
+          icon={IconWallet}
+          color={totalPayable > 0 ? 'red' : 'gray'}
+        />
       </SimpleGrid>
 
       <SegmentedControl

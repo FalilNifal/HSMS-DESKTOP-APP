@@ -41,6 +41,7 @@ import StockAdjustModal from '../components/products/StockAdjustModal'
 import CategoryQuickModal from '../components/products/CategoryQuickModal'
 import ImportProductsModal from '../components/products/ImportProductsModal'
 import ProductStockLogModal from '../components/products/ProductStockLogModal'
+import StatTile from '../components/StatTile'
 
 function InventoryStat({
   label,
@@ -51,21 +52,7 @@ function InventoryStat({
   value: string
   accent?: boolean
 }): JSX.Element {
-  return (
-    <Card
-      withBorder
-      radius="md"
-      padding="md"
-      style={accent ? { borderTop: '3px solid var(--mantine-color-blue-6)' } : undefined}
-    >
-      <Text size="xs" c="dimmed" fw={600} tt="uppercase" style={{ letterSpacing: '0.03em' }}>
-        {label}
-      </Text>
-      <Text fz={24} fw={700} mt={4} c={accent ? 'blue' : undefined}>
-        {value}
-      </Text>
-    </Card>
-  )
+  return <StatTile label={label} value={value} color={accent ? 'blue' : 'gray'} />
 }
 
 export default function ProductsPage(): JSX.Element {
