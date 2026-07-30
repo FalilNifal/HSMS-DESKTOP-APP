@@ -1,30 +1,26 @@
+import logoUrl from '../assets/logo.png'
+
 interface BrandMarkProps {
   size?: number
 }
 
-/** The "JH" (Janatha Hardware) brand badge — a blue gradient monogram tile. */
+/** The Janatha Hardware brand badge — the shop logo rendered as a rounded tile. */
 export default function BrandMark({ size = 34 }: BrandMarkProps): JSX.Element {
   return (
-    <div
-      aria-label="Janatha Hardware"
+    <img
+      src={logoUrl}
+      alt="Janatha Hardware"
+      width={size}
+      height={size}
       style={{
         width: size,
         height: size,
         borderRadius: 'var(--mantine-radius-md)',
-        background:
-          'linear-gradient(135deg, var(--mantine-color-blue-5), var(--mantine-color-blue-8))',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#fff',
-        fontWeight: 800,
-        fontSize: Math.round(size * 0.42),
-        letterSpacing: '0.02em',
+        objectFit: 'contain',
         boxShadow: 'var(--mantine-shadow-sm)',
-        flexShrink: 0
+        flexShrink: 0,
+        display: 'block'
       }}
-    >
-      JH
-    </div>
+    />
   )
 }

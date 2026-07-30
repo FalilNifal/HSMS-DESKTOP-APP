@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data:; media-src 'self'" />
+    <title>Janatha Hardware</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        /* Dark green to match the logo's background so any letterboxing blends in. */
+        background: #0c2415;
+      }
+      #wrap {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="wrap">
+      <video id="v" src="splash.mp4" autoplay loop muted playsinline></video>
+    </div>
+    <script>
+      // Be resilient to autoplay hiccups: force play, and keep it looping.
+      const v = document.getElementById('v')
+      const tryPlay = () => {
+        const p = v.play()
+        if (p && p.catch) p.catch(() => {})
+      }
+      v.addEventListener('canplay', tryPlay)
+      v.addEventListener('ended', () => {
+        // loop attribute normally handles this; belt-and-braces for odd codecs.
+        v.currentTime = 0
+        tryPlay()
+      })
+      tryPlay()
+    </script>
+  </body>
+</html>

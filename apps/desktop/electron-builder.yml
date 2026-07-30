@@ -17,6 +17,10 @@ extraResources:
   - from: ../../backend/HSMS.API/publish
     to: backend
     filter: ["**/*"]
+  # Startup splash (animation shown while the bundled API boots).
+  - from: resources/splash
+    to: splash
+    filter: ["**/*"]
 
 win:
   target:

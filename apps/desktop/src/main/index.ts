@@ -64,7 +64,45 @@ function stopBackend(): void {
   }
 }
 
-function createWindow(): void {
+/** Absolute path to the bundled splash document (packaged vs dev). */
+function splashHtmlPath(): string {
+  return app.isPackaged
+    ? join(process.resourcesPath, 'splash', 'splash.html')
+    : join(app.getAppPath(), 'resources', 'splash', 'splash.html')
+}
+
+/**
+ * A frameless splash window that plays the branded startup animation while the
+ * bundled API boots. Shown instantly on launch, closed once the main window is
+ * ready — so the user never stares at an empty screen during the health wait.
+ */
+function createSplash(): BrowserWindow {
+  const splash = new BrowserWindow({
+    width: 480,
+    height: 480,
+    frame: false,
+    resizable: false,
+    center: true,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    show: false,
+    backgroundColor: '#0c2415',
+    title: 'Janatha Hardware',
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  })
+
+  splash.once('ready-to-show', () => splash.show())
+  void splash.loadFile(splashHtmlPath())
+  return splash
+}
+
+function createWindow(splash?: BrowserWindow): void {
+  // In dev the exe icon isn't embedded yet, so point the window at the PNG.
+  const devIcon = join(app.getAppPath(), 'build', 'icon.png')
+
   const mainWindow = new BrowserWindow({
     width: 1280,
     height: 820,
@@ -73,6 +111,7 @@ function createWindow(): void {
     show: false,
     autoHideMenuBar: true,
     title: 'Janatha Hardware',
+    icon: app.isPackaged ? undefined : devIcon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -81,7 +120,10 @@ function createWindow(): void {
     }
   })
 
-  mainWindow.on('ready-to-show', () => mainWindow.show())
+  mainWindow.once('ready-to-show', () => {
+    if (splash && !splash.isDestroyed()) splash.close()
+    mainWindow.show()
+  })
 
   // Open external links in the system browser, never inside the app window.
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -105,13 +147,15 @@ function createWindow(): void {
 }
 
 app.whenReady().then(async () => {
+  // Show the splash immediately so launch feels instant, then boot the API.
+  const splash = createSplash()
   startBackend()
   // In the packaged app, wait for the bundled API before loading the UI so the
   // first screen has data instead of connection errors.
   if (app.isPackaged) {
     await waitForBackend()
   }
-  createWindow()
+  createWindow(splash)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
