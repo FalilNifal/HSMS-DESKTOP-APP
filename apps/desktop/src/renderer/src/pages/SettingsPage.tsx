@@ -27,6 +27,7 @@ import { ApiError } from '../api/client'
 import { getShopSettings, updateShopSettings } from '../api/settings'
 import { deactivateCategory, listCategories, reactivateCategory, type Category } from '../api/catalog'
 import { useSettingsStore } from '../store/settingsStore'
+import { deriveAccentFromLogo } from '../lib/logoTheme'
 import CategoryFormModal from '../components/settings/CategoryFormModal'
 
 /** Reads an image file and returns a downscaled PNG data URL (keeps the stored logo small). */
@@ -58,6 +59,7 @@ async function fileToScaledDataUrl(file: File, max = 256): Promise<string> {
 export default function SettingsPage(): JSX.Element {
   const queryClient = useQueryClient()
   const setShopMeta = useSettingsStore((s) => s.setShopMeta)
+  const setAccentColor = useSettingsStore((s) => s.setAccentColor)
 
   const settingsQuery = useQuery({ queryKey: ['shop-settings'], queryFn: getShopSettings })
   const categoriesQuery = useQuery({ queryKey: ['categories'], queryFn: listCategories })
@@ -228,7 +230,9 @@ export default function SettingsPage(): JSX.Element {
                       onChange={async (file) => {
                         if (!file) return
                         try {
-                          setLogo(await fileToScaledDataUrl(file))
+                          const dataUrl = await fileToScaledDataUrl(file)
+                          setLogo(dataUrl)
+                          setAccentColor(await deriveAccentFromLogo(dataUrl)) // live theme preview
                         } catch {
                           notifications.show({ color: 'red', message: 'Could not read that image.' })
                         }
@@ -240,7 +244,10 @@ export default function SettingsPage(): JSX.Element {
                         color="red"
                         size="xs"
                         w="fit-content"
-                        onClick={() => setLogo(null)}
+                        onClick={() => {
+                          setLogo(null)
+                          setAccentColor(null)
+                        }}
                       >
                         Remove logo
                       </Button>

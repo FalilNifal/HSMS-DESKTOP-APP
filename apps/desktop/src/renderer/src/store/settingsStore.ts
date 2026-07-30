@@ -11,7 +11,10 @@ interface ShopMeta {
 }
 
 interface SettingsState extends ShopMeta {
+  /** Accent color (hex) derived from the shop logo, or null for the default. */
+  accentColor: string | null
   setShopMeta: (meta: ShopMeta) => void
+  setAccentColor: (hex: string | null) => void
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -22,7 +25,9 @@ export const useSettingsStore = create<SettingsState>()(
       taxRatePercent: 0,
       taxLabel: 'Tax',
       logo: null,
-      setShopMeta: (meta) => set(meta)
+      accentColor: null,
+      setShopMeta: (meta) => set(meta),
+      setAccentColor: (hex) => set({ accentColor: hex })
     }),
     { name: 'hsms-settings' }
   )

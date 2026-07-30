@@ -31,6 +31,7 @@ import { NavLink as RouterNavLink, Outlet, useLocation, useNavigate } from 'reac
 import { useAuthStore, useCurrentUser, type UserRole } from '../store/authStore'
 import { useSettingsStore } from '../store/settingsStore'
 import { getShopSettings } from '../api/settings'
+import { deriveAccentFromLogo } from '../lib/logoTheme'
 import { logoutActivity } from '../api/activity'
 import ChangePasswordModal from './ChangePasswordModal'
 import BrandMark from './BrandMark'
@@ -83,6 +84,7 @@ export default function AppShellLayout(): JSX.Element {
     setColorScheme(computedColorScheme === 'dark' ? 'light' : 'dark')
 
   const setShopMeta = useSettingsStore((s) => s.setShopMeta)
+  const setAccentColor = useSettingsStore((s) => s.setAccentColor)
   const shopName = useSettingsStore((s) => s.shopName)
   const shopLogo = useSettingsStore((s) => s.logo)
   const shopQuery = useQuery({ queryKey: ['shop-settings'], queryFn: getShopSettings })
@@ -96,8 +98,14 @@ export default function AppShellLayout(): JSX.Element {
         taxLabel: shopQuery.data.taxLabel,
         logo: shopQuery.data.logo
       })
+      // Adopt the shop's brand color from its logo (accent only).
+      if (shopQuery.data.logo) {
+        void deriveAccentFromLogo(shopQuery.data.logo).then(setAccentColor)
+      } else {
+        setAccentColor(null)
+      }
     }
-  }, [shopQuery.data, setShopMeta])
+  }, [shopQuery.data, setShopMeta, setAccentColor])
 
   const role = user?.role ?? 'Cashier'
   const visibleItems = NAV_ITEMS.filter((item) => item.roles.includes(role))

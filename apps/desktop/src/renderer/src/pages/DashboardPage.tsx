@@ -55,12 +55,63 @@ export default function DashboardPage(): JSX.Element {
 
   const lowStockItems = lowStockQuery.data?.items ?? []
 
+  const longDate = new Date().toLocaleDateString(undefined, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+
   return (
     <Stack>
-      <div className="hsms-animate-in">
-        <Title order={2}>Welcome back, {user?.fullName?.split(' ')[0] ?? 'there'} 👋</Title>
-        <Text c="dimmed">Here is your shop at a glance for today.</Text>
-      </div>
+      {/* Branded hero — gradient + abstract geometry adopt the shop's accent color. */}
+      <Card
+        radius="lg"
+        padding="xl"
+        className="hsms-animate-in"
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          border: 'none',
+          background:
+            'linear-gradient(135deg, var(--mantine-primary-color-light), var(--mantine-color-body) 70%)'
+        }}
+      >
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: -50,
+            right: -30,
+            width: 190,
+            height: 190,
+            borderRadius: '50%',
+            background: 'var(--mantine-primary-color-filled)',
+            opacity: 0.12,
+            pointerEvents: 'none'
+          }}
+        />
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            bottom: -70,
+            right: 110,
+            width: 130,
+            height: 130,
+            borderRadius: '50%',
+            background: 'var(--mantine-primary-color-filled)',
+            opacity: 0.08,
+            pointerEvents: 'none'
+          }}
+        />
+        <div style={{ position: 'relative' }}>
+          <Title order={2}>Welcome back, {user?.fullName?.split(' ')[0] ?? 'there'} 👋</Title>
+          <Text c="dimmed" mt={4}>
+            {longDate} · here is your shop at a glance.
+          </Text>
+        </div>
+      </Card>
 
       <SimpleGrid cols={{ base: 1, sm: 2, lg: canSeeProfit ? 4 : 2 }}>
         <StatCard
@@ -206,21 +257,54 @@ function StatCard({
       padding="lg"
       className="hsms-animate-in hsms-hover-lift"
       style={{
+        position: 'relative',
+        overflow: 'hidden',
         animationDelay: `${delay}ms`,
         borderTop: `3px solid var(--mantine-color-${color}-6)`
       }}
     >
-      <Group justify="space-between">
-        <Text size="xs" c="dimmed" fw={600} tt="uppercase" style={{ letterSpacing: '0.04em' }}>
-          {label}
+      {/* soft corner glow */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          top: -34,
+          right: -34,
+          width: 120,
+          height: 120,
+          borderRadius: '50%',
+          background: `var(--mantine-color-${color}-light)`,
+          opacity: 0.55,
+          pointerEvents: 'none'
+        }}
+      />
+      {/* faint watermark icon */}
+      <Icon
+        size={104}
+        stroke={1}
+        aria-hidden
+        style={{
+          position: 'absolute',
+          right: -12,
+          bottom: -20,
+          opacity: 0.07,
+          color: `var(--mantine-color-${color}-7)`,
+          pointerEvents: 'none'
+        }}
+      />
+      <div style={{ position: 'relative' }}>
+        <Group justify="space-between">
+          <Text size="xs" c="dimmed" fw={600} tt="uppercase" style={{ letterSpacing: '0.04em' }}>
+            {label}
+          </Text>
+          <ThemeIcon variant="light" color={color} size={38} radius="md">
+            <Icon size={20} />
+          </ThemeIcon>
+        </Group>
+        <Text fz={32} fw={700} mt="xs">
+          {value}
         </Text>
-        <ThemeIcon variant="light" color={color} size={38} radius="md">
-          <Icon size={20} />
-        </ThemeIcon>
-      </Group>
-      <Text fz={32} fw={700} mt="xs">
-        {value}
-      </Text>
+      </div>
     </Card>
   )
 }
