@@ -5,6 +5,12 @@ import { spawn, ChildProcess } from 'child_process'
 
 let backendProcess: ChildProcess | null = null
 
+// Keep the splash up long enough for the logo animation to actually play, even
+// when the app is ready almost instantly (e.g. in dev). Updated to the video's
+// real duration once it reports in (clamped 3–7s).
+let splashShownAt = 0
+let minSplashMs = 3500
+
 /**
  * In a packaged build, start the bundled .NET API as a background process.
  * In dev we do nothing here — run the API yourself with:
@@ -98,16 +104,25 @@ function createSplash(): BrowserWindow {
     }
   })
 
-  // Resize the splash window to the video's real dimensions, scaled to fit the screen.
-  ipcMain.once('splash-size', (_event, size: { w: number; h: number }) => {
-    if (splash.isDestroyed() || !size?.w || !size?.h) return
-    const { workAreaSize } = screen.getPrimaryDisplay()
-    const scale = Math.min(1, (workAreaSize.width * 0.6) / size.w, (workAreaSize.height * 0.6) / size.h)
-    splash.setContentSize(Math.round(size.w * scale), Math.round(size.h * scale))
-    splash.center()
+  // Resize the splash to the video's real dimensions, and adopt the video's
+  // duration as the minimum time to keep the splash on screen.
+  ipcMain.once('splash-size', (_event, size: { w: number; h: number; duration?: number }) => {
+    if (splash.isDestroyed()) return
+    if (size?.w && size?.h) {
+      const { workAreaSize } = screen.getPrimaryDisplay()
+      const scale = Math.min(1, (workAreaSize.width * 0.6) / size.w, (workAreaSize.height * 0.6) / size.h)
+      splash.setContentSize(Math.round(size.w * scale), Math.round(size.h * scale))
+      splash.center()
+    }
+    if (size?.duration && Number.isFinite(size.duration) && size.duration > 0) {
+      minSplashMs = Math.min(7000, Math.max(3000, Math.round(size.duration * 1000)))
+    }
   })
 
-  splash.once('ready-to-show', () => splash.show())
+  splash.once('ready-to-show', () => {
+    splashShownAt = Date.now()
+    splash.show()
+  })
   void splash.loadFile(splashHtmlPath())
   return splash
 }
@@ -134,8 +149,13 @@ function createWindow(splash?: BrowserWindow): void {
   })
 
   mainWindow.once('ready-to-show', () => {
-    if (splash && !splash.isDestroyed()) splash.close()
-    mainWindow.show()
+    // Hold the splash for at least the animation's length, then swap to the app.
+    const elapsed = splashShownAt ? Date.now() - splashShownAt : minSplashMs
+    const wait = Math.max(0, minSplashMs - elapsed)
+    setTimeout(() => {
+      if (splash && !splash.isDestroyed()) splash.close()
+      mainWindow.show()
+    }, wait)
   })
 
   // Open external links in the system browser, never inside the app window.
