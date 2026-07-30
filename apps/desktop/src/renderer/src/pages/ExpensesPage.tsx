@@ -185,6 +185,19 @@ export default function ExpensesPage(): JSX.Element {
                   </Table.Tr>
                 ))}
               </Table.Tbody>
+              <Table.Tfoot>
+                <Table.Tr>
+                  <Table.Td colSpan={4} ta="right">
+                    <Text fw={700}>Total</Text>
+                  </Table.Td>
+                  <Table.Td ta="right">
+                    <Text fw={800}>
+                      {formatMoney(expenses.reduce((sum, e) => sum + e.amount, 0))}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td />
+                </Table.Tr>
+              </Table.Tfoot>
             </Table>
           </Table.ScrollContainer>
         )}

@@ -7,6 +7,7 @@ import {
   Center,
   Group,
   Loader,
+  SimpleGrid,
   Stack,
   Table,
   Text,
@@ -14,15 +15,25 @@ import {
   Title,
   Tooltip
 } from '@mantine/core'
-import { IconAlertTriangle, IconPrinter, IconReceiptRefund, IconSearch } from '@tabler/icons-react'
+import {
+  IconAlertTriangle,
+  IconCash,
+  IconChartBar,
+  IconPrinter,
+  IconReceipt2,
+  IconReceiptRefund,
+  IconSearch,
+  IconTrendingUp
+} from '@tabler/icons-react'
 import { notifications } from '@mantine/notifications'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ApiError } from '../api/client'
 import { getInvoice, listSales } from '../api/sales'
 import { printInvoice } from '../lib/printReceipt'
-import { formatDateTime, formatMoney } from '../lib/format'
+import { formatDateTime, formatInteger, formatMoney } from '../lib/format'
 import { useCurrentUser } from '../store/authStore'
 import NewReturnModal from '../components/returns/NewReturnModal'
+import StatTile from '../components/StatTile'
 
 function toDateInput(date: Date): string {
   const y = date.getFullYear()
@@ -61,6 +72,8 @@ export default function SalesHistoryPage(): JSX.Element {
 
   const sales = salesQuery.data ?? []
   const totalValue = sales.reduce((sum, sale) => sum + sale.totalAmount, 0)
+  const avgSale = sales.length ? totalValue / sales.length : 0
+  const totalProfit = sales.reduce((sum, sale) => sum + (sale.totalProfit ?? 0), 0)
 
   return (
     <Stack className="hsms-animate-in">
@@ -83,6 +96,23 @@ export default function SalesHistoryPage(): JSX.Element {
           />
         </Group>
       </Card>
+
+      {sales.length > 0 && (
+        <SimpleGrid cols={{ base: 1, sm: canReturn ? 4 : 3 }} spacing="sm">
+          <StatTile label="Total sales" value={formatMoney(totalValue)} icon={IconCash} color="blue" />
+          <StatTile label="Orders" value={formatInteger(sales.length)} icon={IconReceipt2} color="cyan" delay={70} />
+          <StatTile label="Average sale" value={formatMoney(avgSale)} icon={IconChartBar} color="teal" delay={140} />
+          {canReturn && (
+            <StatTile
+              label="Total profit"
+              value={formatMoney(totalProfit)}
+              icon={IconTrendingUp}
+              color="grape"
+              delay={210}
+            />
+          )}
+        </SimpleGrid>
+      )}
 
       {salesQuery.isError && (
         <Alert color="red" icon={<IconAlertTriangle size={18} />}>
