@@ -32,6 +32,7 @@ import { useAuthStore, useCurrentUser, type UserRole } from '../store/authStore'
 import { useSettingsStore } from '../store/settingsStore'
 import { getShopSettings } from '../api/settings'
 import { deriveAccentFromLogo } from '../lib/logoTheme'
+import logoUrl from '../assets/logo.png'
 import { logoutActivity } from '../api/activity'
 import ChangePasswordModal from './ChangePasswordModal'
 import BrandMark from './BrandMark'
@@ -222,6 +223,11 @@ export default function AppShellLayout(): JSX.Element {
       </AppShell.Navbar>
 
       <AppShell.Main>
+        <div
+          className="hsms-watermark"
+          aria-hidden
+          style={{ backgroundImage: `url(${shopLogo || logoUrl})` }}
+        />
         <Outlet />
       </AppShell.Main>
 

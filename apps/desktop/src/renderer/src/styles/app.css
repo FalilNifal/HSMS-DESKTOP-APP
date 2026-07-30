@@ -34,6 +34,72 @@
   opacity: 0.3;
 }
 
+/* Embossed dot texture over the background (subtle tactile depth). */
+.mantine-AppShell-main::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1.6px);
+  background-size: 22px 22px;
+}
+
+[data-mantine-color-scheme='dark'] .mantine-AppShell-main::after {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1.6px);
+}
+
+/* Faded brand watermark (shop logo, or the Omni mark) pressed into the corner. */
+.hsms-watermark {
+  position: fixed;
+  right: 2.5vw;
+  bottom: 2.5vh;
+  width: 340px;
+  height: 340px;
+  z-index: -1;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  background-size: contain;
+  opacity: 0.05;
+  filter: grayscale(0.15);
+}
+
+/* ── Soft-depth surfaces ──────────────────────────────────
+   A faint top sheen gives cards a gently raised, skeuomorphic-light feel. */
+[data-mantine-color-scheme='light'] .mantine-Card-root {
+  box-shadow:
+    var(--mantine-shadow-xs),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* ── Elevated, tactile buttons (filled CTAs only) ─────────
+   Drop shadow + inset highlight = raised/glossy; press-down on :active. */
+.mantine-Button-root[data-variant='filled'] {
+  box-shadow:
+    0 2px 5px rgba(15, 23, 42, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transition:
+    transform 90ms ease,
+    box-shadow 130ms ease,
+    filter 130ms ease;
+}
+
+.mantine-Button-root[data-variant='filled']:hover {
+  box-shadow:
+    0 5px 12px rgba(15, 23, 42, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  filter: brightness(1.03);
+}
+
+.mantine-Button-root[data-variant='filled']:active {
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.18),
+    inset 0 1px 2px rgba(15, 23, 42, 0.12);
+  filter: brightness(0.99);
+}
+
 /* ── Navigation links ────────────────────────────────────── */
 .mantine-NavLink-root {
   border-radius: var(--mantine-radius-md);
