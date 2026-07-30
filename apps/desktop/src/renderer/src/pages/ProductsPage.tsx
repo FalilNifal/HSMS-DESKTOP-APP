@@ -22,6 +22,7 @@ import {
   IconAdjustmentsAlt,
   IconAlertTriangle,
   IconEdit,
+  IconHistory,
   IconPackageOff,
   IconPlus,
   IconSearch,
@@ -39,6 +40,7 @@ import ProductFormModal from '../components/products/ProductFormModal'
 import StockAdjustModal from '../components/products/StockAdjustModal'
 import CategoryQuickModal from '../components/products/CategoryQuickModal'
 import ImportProductsModal from '../components/products/ImportProductsModal'
+import ProductStockLogModal from '../components/products/ProductStockLogModal'
 
 function InventoryStat({
   label,
@@ -70,6 +72,7 @@ export default function ProductsPage(): JSX.Element {
   const queryClient = useQueryClient()
 
   const productsQuery = useQuery({ queryKey: ['products'], queryFn: listProducts })
+  const [historyProduct, setHistoryProduct] = useState<Product | null>(null)
   const categoriesQuery = useQuery({ queryKey: ['categories'], queryFn: listCategories })
   const suppliersQuery = useQuery({ queryKey: ['suppliers'], queryFn: listSuppliers })
 
@@ -271,6 +274,15 @@ export default function ProductsPage(): JSX.Element {
                               <IconAdjustmentsAlt size={18} />
                             </ActionIcon>
                           </Tooltip>
+                          <Tooltip label="Stock history">
+                            <ActionIcon
+                              variant="subtle"
+                              color="gray"
+                              onClick={() => setHistoryProduct(product)}
+                            >
+                              <IconHistory size={18} />
+                            </ActionIcon>
+                          </Tooltip>
                           {product.isActive ? (
                             <Tooltip label="Deactivate">
                               <ActionIcon
@@ -320,6 +332,12 @@ export default function ProductsPage(): JSX.Element {
         opened={stockState.opened}
         product={stockState.product}
         onClose={() => setStockState({ opened: false, product: null })}
+      />
+
+      <ProductStockLogModal
+        productId={historyProduct?.id ?? null}
+        productName={historyProduct?.name}
+        onClose={() => setHistoryProduct(null)}
       />
 
       <CategoryQuickModal

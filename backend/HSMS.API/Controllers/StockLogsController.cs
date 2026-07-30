@@ -19,9 +19,23 @@ namespace HSMS.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<StockLogResponseDto>>> GetAll()
+        public async Task<ActionResult<IEnumerable<StockLogResponseDto>>> GetAll(
+            [FromQuery] DateTime? fromDate,
+            [FromQuery] DateTime? toDate)
         {
-            var logs = await BuildQuery()
+            var query = BuildQuery();
+
+            if (fromDate.HasValue)
+            {
+                query = query.Where(log => log.CreatedAt >= fromDate.Value.Date);
+            }
+
+            if (toDate.HasValue)
+            {
+                query = query.Where(log => log.CreatedAt < toDate.Value.Date.AddDays(1));
+            }
+
+            var logs = await query
                 .OrderByDescending(log => log.CreatedAt)
                 .ToListAsync();
 

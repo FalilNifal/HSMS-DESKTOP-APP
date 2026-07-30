@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import ProductsPage from './pages/ProductsPage'
 import StockTakePage from './pages/StockTakePage'
+import StockHistoryPage from './pages/StockHistoryPage'
 import PosPage from './pages/PosPage'
 import SalesHistoryPage from './pages/SalesHistoryPage'
 import QuotationsPage from './pages/QuotationsPage'
@@ -43,6 +44,7 @@ export default function App(): JSX.Element {
           <Route element={<RoleRoute allow={['Admin', 'Manager']} />}>
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/stock-take" element={<StockTakePage />} />
+            <Route path="/stock-history" element={<StockHistoryPage />} />
             <Route path="/suppliers" element={<SuppliersPage />} />
             <Route path="/payables" element={<PayablesPage />} />
             <Route path="/customers" element={<CustomersPage />} />
