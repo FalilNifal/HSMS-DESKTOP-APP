@@ -23,7 +23,7 @@
       video {
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: cover;
         display: block;
       }
     </style>
@@ -33,12 +33,29 @@
       <video id="v" src="splash.mp4" autoplay loop muted playsinline></video>
     </div>
     <script>
-      // Be resilient to autoplay hiccups: force play, and keep it looping.
       const v = document.getElementById('v')
+
+      // Guarantee silence regardless of how Chromium treats the muted attribute.
+      v.muted = true
+      v.volume = 0
+
       const tryPlay = () => {
         const p = v.play()
         if (p && p.catch) p.catch(() => {})
       }
+
+      // Tell the main process the video's real size so it can size the window to it.
+      v.addEventListener('loadedmetadata', () => {
+        try {
+          const { ipcRenderer } = require('electron')
+          if (v.videoWidth && v.videoHeight) {
+            ipcRenderer.send('splash-size', { w: v.videoWidth, h: v.videoHeight })
+          }
+        } catch (e) {
+          /* ipc unavailable — window keeps its default size */
+        }
+      })
+
       v.addEventListener('canplay', tryPlay)
       v.addEventListener('ended', () => {
         // loop attribute normally handles this; belt-and-braces for odd codecs.

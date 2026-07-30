@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, screen, shell } from 'electron'
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { spawn, ChildProcess } from 'child_process'
@@ -78,8 +78,10 @@ function splashHtmlPath(): string {
  */
 function createSplash(): BrowserWindow {
   const splash = new BrowserWindow({
+    // Placeholder size shown for the ~100ms before the video's real dimensions
+    // arrive; it is then resized to match the video (see the ipc handler below).
     width: 480,
-    height: 480,
+    height: 270,
     frame: false,
     resizable: false,
     center: true,
@@ -88,10 +90,21 @@ function createSplash(): BrowserWindow {
     show: false,
     backgroundColor: '#0c2415',
     title: 'Omni POS',
+    // The splash loads only our bundled local file (no remote/user content), so
+    // nodeIntegration is safe here and lets it report the video size over ipc.
     webPreferences: {
-      contextIsolation: true,
-      nodeIntegration: false
+      contextIsolation: false,
+      nodeIntegration: true
     }
+  })
+
+  // Resize the splash window to the video's real dimensions, scaled to fit the screen.
+  ipcMain.once('splash-size', (_event, size: { w: number; h: number }) => {
+    if (splash.isDestroyed() || !size?.w || !size?.h) return
+    const { workAreaSize } = screen.getPrimaryDisplay()
+    const scale = Math.min(1, (workAreaSize.width * 0.6) / size.w, (workAreaSize.height * 0.6) / size.h)
+    splash.setContentSize(Math.round(size.w * scale), Math.round(size.h * scale))
+    splash.center()
   })
 
   splash.once('ready-to-show', () => splash.show())
