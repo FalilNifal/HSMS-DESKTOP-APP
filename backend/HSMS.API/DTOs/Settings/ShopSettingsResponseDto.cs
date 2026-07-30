@@ -12,6 +12,8 @@ namespace HSMS.API.DTOs.Settings
 
         public string? LogoPath { get; set; }
 
+        public string? Logo { get; set; }
+
         public string Currency { get; set; } = string.Empty;
 
         public string InvoiceFooterMessage { get; set; } = string.Empty;

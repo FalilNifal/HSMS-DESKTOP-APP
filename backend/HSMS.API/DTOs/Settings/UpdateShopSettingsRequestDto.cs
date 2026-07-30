@@ -14,6 +14,10 @@ namespace HSMS.API.DTOs.Settings
         [MaxLength(30)]
         public string PhoneNumber { get; set; } = string.Empty;
 
+        /// <summary>Shop logo as a data URL, or null/empty to clear it.</summary>
+        [MaxLength(3_000_000)]
+        public string? Logo { get; set; }
+
         [Required]
         [MaxLength(10)]
         public string Currency { get; set; } = string.Empty;

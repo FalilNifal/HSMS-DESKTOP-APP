@@ -78,7 +78,7 @@ export default function LoginPage(): JSX.Element {
         <Stack gap="sm" align="center" mb="lg">
           <BrandMark size={60} />
           <div style={{ textAlign: 'center' }}>
-            <Title order={2}>Janatha Hardware</Title>
+            <Title order={2}>Omni POS</Title>
             <Text c="dimmed" size="sm">
               Sign in to continue
             </Text>

@@ -43,6 +43,7 @@ namespace HSMS.API.Controllers
                 : request.InvoiceFooterMessage.Trim();
             settings.TaxRatePercent = request.TaxRatePercent;
             settings.TaxLabel = string.IsNullOrWhiteSpace(request.TaxLabel) ? "Tax" : request.TaxLabel.Trim();
+            settings.Logo = string.IsNullOrWhiteSpace(request.Logo) ? null : request.Logo.Trim();
             settings.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
@@ -69,6 +70,7 @@ namespace HSMS.API.Controllers
             Address = settings.Address,
             PhoneNumber = settings.PhoneNumber,
             LogoPath = settings.LogoPath,
+            Logo = settings.Logo,
             Currency = settings.Currency,
             InvoiceFooterMessage = settings.InvoiceFooterMessage,
             TaxRatePercent = settings.TaxRatePercent,

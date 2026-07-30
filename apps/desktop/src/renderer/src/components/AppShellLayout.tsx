@@ -82,6 +82,7 @@ export default function AppShellLayout(): JSX.Element {
 
   const setShopMeta = useSettingsStore((s) => s.setShopMeta)
   const shopName = useSettingsStore((s) => s.shopName)
+  const shopLogo = useSettingsStore((s) => s.logo)
   const shopQuery = useQuery({ queryKey: ['shop-settings'], queryFn: getShopSettings })
 
   useEffect(() => {
@@ -90,7 +91,8 @@ export default function AppShellLayout(): JSX.Element {
         currency: shopQuery.data.currency,
         shopName: shopQuery.data.shopName,
         taxRatePercent: shopQuery.data.taxRatePercent,
-        taxLabel: shopQuery.data.taxLabel
+        taxLabel: shopQuery.data.taxLabel,
+        logo: shopQuery.data.logo
       })
     }
   }, [shopQuery.data, setShopMeta])
@@ -118,9 +120,9 @@ export default function AppShellLayout(): JSX.Element {
         <Group h="100%" px="md" justify="space-between">
           <Group gap="sm">
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-            <BrandMark size={32} />
+            <BrandMark size={32} src={shopLogo} />
             <Text fw={700} size="lg">
-              {shopName || 'Janatha Hardware'}
+              {shopName || 'Omni POS'}
             </Text>
           </Group>
 

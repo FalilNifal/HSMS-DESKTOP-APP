@@ -5,7 +5,9 @@ import {
   Button,
   Card,
   Center,
+  FileInput,
   Group,
+  Image,
   Loader,
   NumberInput,
   SimpleGrid,
@@ -17,7 +19,7 @@ import {
   Title,
   Tooltip
 } from '@mantine/core'
-import { IconDeviceFloppy, IconEdit, IconPlus, IconRestore, IconTrash } from '@tabler/icons-react'
+import { IconDeviceFloppy, IconEdit, IconPhoto, IconPlus, IconRestore, IconTrash } from '@tabler/icons-react'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -26,6 +28,32 @@ import { getShopSettings, updateShopSettings } from '../api/settings'
 import { deactivateCategory, listCategories, reactivateCategory, type Category } from '../api/catalog'
 import { useSettingsStore } from '../store/settingsStore'
 import CategoryFormModal from '../components/settings/CategoryFormModal'
+
+/** Reads an image file and returns a downscaled PNG data URL (keeps the stored logo small). */
+async function fileToScaledDataUrl(file: File, max = 256): Promise<string> {
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+  const img = new window.Image()
+  await new Promise((resolve, reject) => {
+    img.onload = resolve
+    img.onerror = reject
+    img.src = dataUrl
+  })
+  const scale = Math.min(1, max / Math.max(img.width, img.height))
+  const w = Math.max(1, Math.round(img.width * scale))
+  const h = Math.max(1, Math.round(img.height * scale))
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return dataUrl
+  ctx.drawImage(img, 0, 0, w, h)
+  return canvas.toDataURL('image/png')
+}
 
 export default function SettingsPage(): JSX.Element {
   const queryClient = useQueryClient()
@@ -38,6 +66,7 @@ export default function SettingsPage(): JSX.Element {
     opened: false,
     category: null
   })
+  const [logo, setLogo] = useState<string | null>(null)
 
   const form = useForm({
     initialValues: {
@@ -66,6 +95,7 @@ export default function SettingsPage(): JSX.Element {
         taxRatePercent: settingsQuery.data.taxRatePercent,
         taxLabel: settingsQuery.data.taxLabel
       })
+      setLogo(settingsQuery.data.logo)
       form.resetDirty()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -78,7 +108,8 @@ export default function SettingsPage(): JSX.Element {
         currency: data.currency,
         shopName: data.shopName,
         taxRatePercent: data.taxRatePercent,
-        taxLabel: data.taxLabel
+        taxLabel: data.taxLabel,
+        logo: data.logo
       })
       await queryClient.invalidateQueries({ queryKey: ['shop-settings'] })
       notifications.show({ color: 'teal', message: 'Settings saved.' })
@@ -136,7 +167,7 @@ export default function SettingsPage(): JSX.Element {
         ) : (
           <form
             onSubmit={form.onSubmit((values) =>
-              saveMutation.mutate({ ...values, taxRatePercent: Number(values.taxRatePercent) })
+              saveMutation.mutate({ ...values, taxRatePercent: Number(values.taxRatePercent), logo })
             )}
           >
             <Stack>
@@ -170,6 +201,54 @@ export default function SettingsPage(): JSX.Element {
                 minRows={2}
                 {...form.getInputProps('invoiceFooterMessage')}
               />
+
+              <div>
+                <Text size="sm" fw={500} mb={2}>
+                  Shop logo (optional)
+                </Text>
+                <Text size="xs" c="dimmed" mb="xs">
+                  Upload your shop&apos;s logo to print it on invoices &amp; receipts. If left empty,
+                  no logo is printed — the app&apos;s default logo is never shown on customer bills.
+                </Text>
+                <Group align="flex-start" gap="md">
+                  {logo ? (
+                    <Image src={logo} w={72} h={72} fit="contain" radius="sm" />
+                  ) : (
+                    <Center w={72} h={72} bg="gray.1" style={{ borderRadius: 8 }}>
+                      <IconPhoto size={28} opacity={0.5} />
+                    </Center>
+                  )}
+                  <Stack gap="xs">
+                    <FileInput
+                      accept="image/png,image/jpeg,image/webp"
+                      placeholder="Choose image…"
+                      leftSection={<IconPhoto size={16} />}
+                      value={null}
+                      w={240}
+                      onChange={async (file) => {
+                        if (!file) return
+                        try {
+                          setLogo(await fileToScaledDataUrl(file))
+                        } catch {
+                          notifications.show({ color: 'red', message: 'Could not read that image.' })
+                        }
+                      }}
+                    />
+                    {logo && (
+                      <Button
+                        variant="subtle"
+                        color="red"
+                        size="xs"
+                        w="fit-content"
+                        onClick={() => setLogo(null)}
+                      >
+                        Remove logo
+                      </Button>
+                    )}
+                  </Stack>
+                </Group>
+              </div>
+
               <Group justify="flex-end">
                 <Button
                   type="submit"

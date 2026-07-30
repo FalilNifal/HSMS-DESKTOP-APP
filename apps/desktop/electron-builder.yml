@@ -1,6 +1,6 @@
-appId: com.hsms.desktop
-productName: Janatha Hardware
-copyright: Copyright © 2026 HSMS
+appId: com.omni.pos
+productName: Omni POS
+copyright: Copyright © 2026 Omni POS
 
 directories:
   output: release

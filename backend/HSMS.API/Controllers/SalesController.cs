@@ -309,6 +309,7 @@ namespace HSMS.API.Controllers
             {
                 InvoiceNumber = sale.InvoiceNumber,
                 ShopName = shopSettings.ShopName,
+                Logo = shopSettings.Logo,
                 Address = shopSettings.Address,
                 PhoneNumber = shopSettings.PhoneNumber,
                 InvoiceFooterMessage = shopSettings.InvoiceFooterMessage,

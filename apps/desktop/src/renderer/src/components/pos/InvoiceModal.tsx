@@ -40,6 +40,13 @@ export default function InvoiceModal({ saleId, onClose, onNewSale }: InvoiceModa
             style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' }}
           >
             <Stack gap={2} align="center">
+              {invoice.logo && (
+                <img
+                  src={invoice.logo}
+                  alt=""
+                  style={{ maxWidth: 96, maxHeight: 96, objectFit: 'contain', marginBottom: 4 }}
+                />
+              )}
               <Text fw={700} size="lg">
                 {invoice.shopName}
               </Text>

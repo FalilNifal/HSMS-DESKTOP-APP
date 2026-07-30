@@ -6,6 +6,8 @@ namespace HSMS.API.DTOs.Sales
 
         public string ShopName { get; set; } = string.Empty;
 
+        public string? Logo { get; set; }
+
         public string Address { get; set; } = string.Empty;
 
         public string PhoneNumber { get; set; } = string.Empty;

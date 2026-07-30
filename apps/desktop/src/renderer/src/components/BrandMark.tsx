@@ -2,14 +2,16 @@ import logoUrl from '../assets/logo.png'
 
 interface BrandMarkProps {
   size?: number
+  /** Optional shop-uploaded logo (data URL). Falls back to the default Omni POS mark. */
+  src?: string | null
 }
 
-/** The Janatha Hardware brand badge — the shop logo rendered as a rounded tile. */
-export default function BrandMark({ size = 34 }: BrandMarkProps): JSX.Element {
+/** Brand badge — the shop's own logo if set, otherwise the default Omni POS mark. */
+export default function BrandMark({ size = 34, src }: BrandMarkProps): JSX.Element {
   return (
     <img
-      src={logoUrl}
-      alt="Janatha Hardware"
+      src={src || logoUrl}
+      alt="Shop logo"
       width={size}
       height={size}
       style={{

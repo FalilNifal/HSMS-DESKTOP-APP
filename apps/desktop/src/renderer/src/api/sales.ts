@@ -52,6 +52,8 @@ export interface InvoiceItem {
 export interface Invoice {
   invoiceNumber: string
   shopName: string
+  /** Shop's own uploaded logo (data URL) or null. NEVER the app default — invoices show no logo if unset. */
+  logo: string | null
   address: string
   phoneNumber: string
   invoiceFooterMessage: string

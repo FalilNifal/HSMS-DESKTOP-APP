@@ -6,6 +6,8 @@ interface ShopMeta {
   shopName: string
   taxRatePercent: number
   taxLabel: string
+  /** Shop-uploaded logo (data URL) or null for the default mark. */
+  logo: string | null
 }
 
 interface SettingsState extends ShopMeta {
@@ -19,6 +21,7 @@ export const useSettingsStore = create<SettingsState>()(
       shopName: '',
       taxRatePercent: 0,
       taxLabel: 'Tax',
+      logo: null,
       setShopMeta: (meta) => set(meta)
     }),
     { name: 'hsms-settings' }

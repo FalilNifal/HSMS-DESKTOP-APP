@@ -87,7 +87,7 @@ function createSplash(): BrowserWindow {
     skipTaskbar: true,
     show: false,
     backgroundColor: '#0c2415',
-    title: 'Janatha Hardware',
+    title: 'Omni POS',
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false
@@ -110,7 +110,7 @@ function createWindow(splash?: BrowserWindow): void {
     minHeight: 680,
     show: false,
     autoHideMenuBar: true,
-    title: 'Janatha Hardware',
+    title: 'Omni POS',
     icon: app.isPackaged ? undefined : devIcon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

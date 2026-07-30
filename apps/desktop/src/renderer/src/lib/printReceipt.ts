@@ -47,10 +47,12 @@ function buildReceiptHtml(invoice: Invoice): string {
   .item-name { font-size: 12px; }
   .total { font-size: 15px; font-weight: 700; }
   .footer { font-size: 11px; text-align: center; color: #444; }
+  .logo { display: block; margin: 0 auto 6px; max-width: 120px; max-height: 120px; }
   @page { margin: 6mm; }
 </style>
 </head>
 <body>
+  ${invoice.logo ? `<img class="logo" src="${esc(invoice.logo)}" alt="" />` : ''}
   <div class="center shop">${esc(invoice.shopName)}</div>
   ${invoice.address ? `<div class="center sm">${esc(invoice.address)}</div>` : ''}
   ${invoice.phoneNumber ? `<div class="center sm">Tel: ${esc(invoice.phoneNumber)}</div>` : ''}

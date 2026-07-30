@@ -19,6 +19,10 @@ namespace HSMS.API.Models
         [MaxLength(250)]
         public string? LogoPath { get; set; }
 
+        /// <summary>Shop-uploaded logo as a data URL (e.g. "data:image/png;base64,...").
+        /// Null = use the default product logo.</summary>
+        public string? Logo { get; set; }
+
         [MaxLength(10)]
         public string Currency { get; set; } = "LKR";
 

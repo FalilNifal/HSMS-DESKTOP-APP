@@ -6,6 +6,8 @@ export interface ShopSettings {
   address: string
   phoneNumber: string
   logoPath: string | null
+  /** Shop-uploaded logo as a data URL, or null to use the default. */
+  logo: string | null
   currency: string
   invoiceFooterMessage: string
   taxRatePercent: number
@@ -18,6 +20,7 @@ export interface UpdateShopSettingsRequest {
   shopName: string
   address: string
   phoneNumber: string
+  logo: string | null
   currency: string
   invoiceFooterMessage: string
   taxRatePercent: number
