@@ -10,7 +10,7 @@ import { generateShades } from './lib/logoTheme'
 // Derived from the Omni logo with the same algorithm used for uploaded logos —
 // the default accent when a shop hasn't set its own logo (so the app is green
 // out of the box, matching the Omni brand).
-const OMNI_ACCENT = '#bdec58'
+const OMNI_ACCENT = '#73a62d'
 
 export function buildTheme(accentHex?: string | null) {
   const brand: MantineColorsTuple = generateShades(accentHex || OMNI_ACCENT)

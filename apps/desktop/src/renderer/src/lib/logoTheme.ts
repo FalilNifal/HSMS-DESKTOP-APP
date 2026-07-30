@@ -106,7 +106,7 @@ export async function deriveAccentFromLogo(dataUrl: string): Promise<string | nu
       const { h, s, l } = rgbToHsl(r, g, b)
       if (s < 0.25) continue // grey
       if (l < 0.12 || l > 0.9) continue // near black / white
-      const key = Math.round(h / 15) // 15° hue buckets
+      const key = Math.round(h / 15) % 24 // 15° hue buckets (circular)
       const score = s * (1 - Math.abs(l - 0.5)) // vibrant + mid-lightness
       const bucket = buckets.get(key) ?? { r: 0, g: 0, b: 0, count: 0, score: 0 }
       bucket.r += r
@@ -117,15 +117,39 @@ export async function deriveAccentFromLogo(dataUrl: string): Promise<string | nu
       buckets.set(key, bucket)
     }
 
-    let best: { r: number; g: number; b: number } | null = null
-    let bestScore = -1
-    for (const bucket of buckets.values()) {
-      if (bucket.score > bestScore) {
-        bestScore = bucket.score
-        best = { r: bucket.r / bucket.count, g: bucket.g / bucket.count, b: bucket.b / bucket.count }
+    if (buckets.size === 0) return null
+
+    // Dominant hue, then blend its ±2 neighbours (the light, mid and dark tones
+    // of that color) for a fuller shade, and deepen slightly for "shadow"
+    // exposure — a richer accent than the single brightest highlight.
+    let domKey = -1
+    let domScore = -1
+    for (const [key, bucket] of buckets) {
+      if (bucket.score > domScore) {
+        domScore = bucket.score
+        domKey = key
       }
     }
-    return best ? rgbToHex(best.r, best.g, best.b) : null
+
+    let r = 0
+    let g = 0
+    let b = 0
+    let count = 0
+    for (let d = -2; d <= 2; d += 1) {
+      const key = (((domKey + d) % 24) + 24) % 24
+      const bucket = buckets.get(key)
+      if (bucket) {
+        r += bucket.r
+        g += bucket.g
+        b += bucket.b
+        count += bucket.count
+      }
+    }
+    if (count === 0) return null
+
+    const { h, s, l } = rgbToHsl(r / count, g / count, b / count)
+    const [dr, dg, db] = hslToRgb(h, Math.min(0.95, s * 1.08), l * 0.78)
+    return rgbToHex(dr, dg, db)
   } catch {
     return null
   }
