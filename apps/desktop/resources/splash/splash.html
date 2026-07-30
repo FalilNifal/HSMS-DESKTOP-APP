@@ -30,7 +30,7 @@
   </head>
   <body>
     <div id="wrap">
-      <video id="v" src="splash.mp4" autoplay loop muted playsinline></video>
+      <video id="v" src="splash.mp4" autoplay muted playsinline></video>
     </div>
     <script>
       const v = document.getElementById('v')
@@ -57,11 +57,23 @@
       })
 
       v.addEventListener('canplay', tryPlay)
+
+      // Signal the main process once the video has played through fully, then keep
+      // looping in case the app is still loading — but the first full play is done.
+      let signalled = false
       v.addEventListener('ended', () => {
-        // loop attribute normally handles this; belt-and-braces for odd codecs.
+        if (!signalled) {
+          signalled = true
+          try {
+            require('electron').ipcRenderer.send('splash-ended')
+          } catch (e) {
+            /* ipc unavailable */
+          }
+        }
         v.currentTime = 0
         tryPlay()
       })
+
       tryPlay()
     </script>
   </body>

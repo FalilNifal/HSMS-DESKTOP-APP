@@ -5,11 +5,19 @@ import { spawn, ChildProcess } from 'child_process'
 
 let backendProcess: ChildProcess | null = null
 
-// Keep the splash up long enough for the logo animation to actually play, even
-// when the app is ready almost instantly (e.g. in dev). Updated to the video's
-// real duration once it reports in (clamped 3–7s).
-let splashShownAt = 0
-let minSplashMs = 3500
+// The splash closes only once the video has played through once AND the app is
+// ready — so the logo animation always finishes before jumping to the dashboard.
+let splashWin: BrowserWindow | null = null
+let mainWin: BrowserWindow | null = null
+let videoEnded = false
+let mainReady = false
+
+function finishSplash(): void {
+  if (!videoEnded || !mainReady) return
+  if (splashWin && !splashWin.isDestroyed()) splashWin.close()
+  splashWin = null
+  if (mainWin && !mainWin.isDestroyed()) mainWin.show()
+}
 
 /**
  * In a packaged build, start the bundled .NET API as a background process.
@@ -104,30 +112,35 @@ function createSplash(): BrowserWindow {
     }
   })
 
-  // Resize the splash to the video's real dimensions, and adopt the video's
-  // duration as the minimum time to keep the splash on screen.
-  ipcMain.once('splash-size', (_event, size: { w: number; h: number; duration?: number }) => {
-    if (splash.isDestroyed()) return
-    if (size?.w && size?.h) {
-      const { workAreaSize } = screen.getPrimaryDisplay()
-      const scale = Math.min(1, (workAreaSize.width * 0.6) / size.w, (workAreaSize.height * 0.6) / size.h)
-      splash.setContentSize(Math.round(size.w * scale), Math.round(size.h * scale))
-      splash.center()
-    }
-    if (size?.duration && Number.isFinite(size.duration) && size.duration > 0) {
-      minSplashMs = Math.min(7000, Math.max(3000, Math.round(size.duration * 1000)))
-    }
+  splashWin = splash
+
+  // Resize the splash to the video's real dimensions, scaled to fit the screen.
+  ipcMain.once('splash-size', (_event, size: { w: number; h: number }) => {
+    if (splash.isDestroyed() || !size?.w || !size?.h) return
+    const { workAreaSize } = screen.getPrimaryDisplay()
+    const scale = Math.min(1, (workAreaSize.width * 0.6) / size.w, (workAreaSize.height * 0.6) / size.h)
+    splash.setContentSize(Math.round(size.w * scale), Math.round(size.h * scale))
+    splash.center()
   })
 
-  splash.once('ready-to-show', () => {
-    splashShownAt = Date.now()
-    splash.show()
+  // The splash reports when the video has played through once.
+  ipcMain.once('splash-ended', () => {
+    videoEnded = true
+    finishSplash()
   })
+
+  // Safety net: never let the splash hang if the video fails to signal.
+  setTimeout(() => {
+    videoEnded = true
+    finishSplash()
+  }, 15000)
+
+  splash.once('ready-to-show', () => splash.show())
   void splash.loadFile(splashHtmlPath())
   return splash
 }
 
-function createWindow(splash?: BrowserWindow): void {
+function createWindow(): void {
   // In dev the exe icon isn't embedded yet, so point the window at the PNG.
   const devIcon = join(app.getAppPath(), 'build', 'icon.png')
 
@@ -149,13 +162,9 @@ function createWindow(splash?: BrowserWindow): void {
   })
 
   mainWindow.once('ready-to-show', () => {
-    // Hold the splash for at least the animation's length, then swap to the app.
-    const elapsed = splashShownAt ? Date.now() - splashShownAt : minSplashMs
-    const wait = Math.max(0, minSplashMs - elapsed)
-    setTimeout(() => {
-      if (splash && !splash.isDestroyed()) splash.close()
-      mainWindow.show()
-    }, wait)
+    mainWin = mainWindow
+    mainReady = true
+    finishSplash()
   })
 
   // Open external links in the system browser, never inside the app window.
@@ -181,14 +190,14 @@ function createWindow(splash?: BrowserWindow): void {
 
 app.whenReady().then(async () => {
   // Show the splash immediately so launch feels instant, then boot the API.
-  const splash = createSplash()
+  createSplash()
   startBackend()
   // In the packaged app, wait for the bundled API before loading the UI so the
   // first screen has data instead of connection errors.
   if (app.isPackaged) {
     await waitForBackend()
   }
-  createWindow(splash)
+  createWindow()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
