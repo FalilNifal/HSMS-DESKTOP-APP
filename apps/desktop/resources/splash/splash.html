@@ -30,14 +30,14 @@
   </head>
   <body>
     <div id="wrap">
-      <video id="v" src="splash.mp4" autoplay muted playsinline></video>
+      <video id="v" src="splash.mp4" autoplay playsinline></video>
     </div>
     <script>
       const v = document.getElementById('v')
 
-      // Guarantee silence regardless of how Chromium treats the muted attribute.
-      v.muted = true
-      v.volume = 0
+      // Play with sound (autoplay-with-audio is enabled in the main process).
+      v.muted = false
+      v.volume = 1
 
       const tryPlay = () => {
         const p = v.play()

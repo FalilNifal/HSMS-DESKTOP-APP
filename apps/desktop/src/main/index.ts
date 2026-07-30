@@ -3,6 +3,9 @@ import { join } from 'path'
 import { existsSync } from 'fs'
 import { spawn, ChildProcess } from 'child_process'
 
+// Let the splash video autoplay with sound (trusted local content, desktop app).
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
+
 let backendProcess: ChildProcess | null = null
 
 // The splash closes only once the video has played through once AND the app is
