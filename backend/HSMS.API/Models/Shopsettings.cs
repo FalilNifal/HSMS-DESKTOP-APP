@@ -16,9 +16,6 @@ namespace HSMS.API.Models
         [MaxLength(30)]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        [MaxLength(250)]
-        public string? LogoPath { get; set; }
-
         /// <summary>Shop-uploaded logo as a data URL (e.g. "data:image/png;base64,...").
         /// Null = use the default product logo.</summary>
         public string? Logo { get; set; }

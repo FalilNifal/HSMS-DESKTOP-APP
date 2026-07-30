@@ -10,8 +10,6 @@ namespace HSMS.API.DTOs.Settings
 
         public string PhoneNumber { get; set; } = string.Empty;
 
-        public string? LogoPath { get; set; }
-
         public string? Logo { get; set; }
 
         public string Currency { get; set; } = string.Empty;

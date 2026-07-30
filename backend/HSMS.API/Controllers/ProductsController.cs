@@ -45,41 +45,6 @@ namespace HSMS.API.Controllers
             return Ok(product);
         }
 
-        [HttpGet("search")]
-        [Authorize]
-        public async Task<ActionResult<IEnumerable<ProductSearchResponseDto>>> Search([FromQuery] string query)
-        {
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                return Ok(Array.Empty<ProductSearchResponseDto>());
-            }
-
-            var searchQuery = query.Trim();
-            var isCashier = User.IsInRole("Cashier");
-
-            var products = await _context.Products
-                .Include(product => product.Category)
-                .Include(product => product.Supplier)
-                .Where(product => (!isCashier || product.IsActive) &&
-                    (product.Name.Contains(searchQuery) || product.SKU.Contains(searchQuery)))
-                .OrderBy(product => product.Name)
-                .Select(product => new ProductSearchResponseDto
-                {
-                    Id = product.Id,
-                    Name = product.Name,
-                    SKU = product.SKU,
-                    CategoryName = product.Category != null ? product.Category.Name : string.Empty,
-                    SupplierName = product.Supplier != null ? product.Supplier.Name : null,
-                    MinimumSellingPrice = product.MinimumSellingPrice,
-                    StockQuantity = product.StockQuantity,
-                    LowStockLevel = product.LowStockLevel,
-                    IsActive = product.IsActive
-                })
-                .ToListAsync();
-
-            return Ok(products);
-        }
-
         [HttpPost]
         [Authorize(Roles = "Admin,Manager")]
         public async Task<ActionResult<ProductResponseDto>> Create([FromBody] CreateProductRequestDto request)

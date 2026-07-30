@@ -5,7 +5,6 @@ export interface ShopSettings {
   shopName: string
   address: string
   phoneNumber: string
-  logoPath: string | null
   /** Shop-uploaded logo as a data URL, or null to use the default. */
   logo: string | null
   currency: string

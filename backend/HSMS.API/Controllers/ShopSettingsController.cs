@@ -69,7 +69,6 @@ namespace HSMS.API.Controllers
             ShopName = settings.ShopName,
             Address = settings.Address,
             PhoneNumber = settings.PhoneNumber,
-            LogoPath = settings.LogoPath,
             Logo = settings.Logo,
             Currency = settings.Currency,
             InvoiceFooterMessage = settings.InvoiceFooterMessage,

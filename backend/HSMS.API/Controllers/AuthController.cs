@@ -83,27 +83,5 @@ namespace HSMS.API.Controllers
             return Ok(new { message = "Logged out." });
         }
 
-        [HttpGet("me")]
-        [Authorize]
-        public IActionResult Me()
-        {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var username = User.FindFirstValue(ClaimTypes.Name);
-            var fullName = User.FindFirstValue(ClaimTypes.GivenName);
-            var role = User.FindFirstValue(ClaimTypes.Role);
-
-            if (!int.TryParse(userIdClaim, out var userId) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(role))
-            {
-                return Unauthorized();
-            }
-
-            return Ok(new
-            {
-                id = userId,
-                fullName,
-                username,
-                role
-            });
-        }
     }
 }

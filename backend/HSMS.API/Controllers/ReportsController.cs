@@ -94,22 +94,6 @@ namespace HSMS.API.Controllers
             });
         }
 
-        [HttpGet("monthly-sales")]
-        public async Task<ActionResult<MonthlySalesReportDto>> GetMonthlySales([FromQuery] int year, [FromQuery] int month)
-        {
-            var start = new DateTime(year, month, 1);
-            var end = start.AddMonths(1);
-            var sales = await GetFilteredSales(start, end);
-
-            return Ok(new MonthlySalesReportDto
-            {
-                Year = year,
-                Month = month,
-                TotalSales = sales.Sum(sale => sale.TotalAmount),
-                TotalOrders = sales.Count
-            });
-        }
-
         [HttpGet("date-range-sales")]
         public async Task<ActionResult<ProfitReportDto>> GetDateRangeSales([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
         {
@@ -125,17 +109,6 @@ namespace HSMS.API.Controllers
             var sales = await GetFilteredSales(date.Date, date.Date.AddDays(1));
             var (refunds, refundProfit) = await GetRefundsInPeriodAsync(date.Date, date.Date.AddDays(1));
             return Ok(BuildProfitReport(date.Date, date.Date, sales, refunds, refundProfit));
-        }
-
-        [HttpGet("monthly-profit")]
-        [Authorize(Roles = "Admin,Manager")]
-        public async Task<ActionResult<ProfitReportDto>> GetMonthlyProfit([FromQuery] int year, [FromQuery] int month)
-        {
-            var start = new DateTime(year, month, 1);
-            var end = start.AddMonths(1);
-            var sales = await GetFilteredSales(start, end);
-            var (refunds, refundProfit) = await GetRefundsInPeriodAsync(start, end);
-            return Ok(BuildProfitReport(start, end.AddDays(-1), sales, refunds, refundProfit));
         }
 
         [HttpGet("product-sales")]
@@ -270,41 +243,6 @@ namespace HSMS.API.Controllers
                 TotalUnits = products.Sum(product => product.StockQuantity),
                 TotalCostValue = products.Sum(product => product.StockQuantity * product.PurchasePrice),
                 TotalRetailValue = products.Sum(product => product.StockQuantity * product.MinimumSellingPrice)
-            });
-        }
-
-        [HttpGet("stock-movement")]
-        [Authorize(Roles = "Admin,Manager")]
-        public async Task<ActionResult<StockMovementReportDto>> GetStockMovement([FromQuery] int productId)
-        {
-            var product = await _context.Products.FirstOrDefaultAsync(item => item.Id == productId);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            var items = await _context.StockLogs
-                .Include(stockLog => stockLog.ChangedByUser)
-                .Where(stockLog => stockLog.ProductId == productId)
-                .OrderByDescending(stockLog => stockLog.CreatedAt)
-                .Select(stockLog => new StockMovementReportItemDto
-                {
-                    Id = stockLog.Id,
-                    OldQuantity = stockLog.OldQuantity,
-                    NewQuantity = stockLog.NewQuantity,
-                    ChangeAmount = stockLog.ChangeAmount,
-                    Reason = stockLog.Reason,
-                    ChangedByUserName = stockLog.ChangedByUser != null ? stockLog.ChangedByUser.FullName : string.Empty,
-                    CreatedAt = stockLog.CreatedAt
-                })
-                .ToListAsync();
-
-            return Ok(new StockMovementReportDto
-            {
-                ProductId = product.Id,
-                ProductName = product.Name,
-                SKU = product.SKU,
-                Items = items
             });
         }
 
