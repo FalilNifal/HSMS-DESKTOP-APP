@@ -10,6 +10,30 @@
   background-color: var(--mantine-color-gray-0);
 }
 
+/* Subtle brand-tinted glow behind every page (follows the shop's accent color).
+   Fixed + z-index:-1 inside the main's own stacking context, so it tints the
+   background corners without scrolling and always sits behind the content. */
+.mantine-AppShell-main {
+  position: relative;
+  isolation: isolate;
+}
+
+.mantine-AppShell-main::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 52% at 100% 0%, var(--mantine-primary-color-light), transparent 70%),
+    radial-gradient(48% 50% at 0% 100%, var(--mantine-primary-color-light), transparent 66%);
+  opacity: 0.5;
+}
+
+[data-mantine-color-scheme='dark'] .mantine-AppShell-main::before {
+  opacity: 0.3;
+}
+
 /* ── Navigation links ────────────────────────────────────── */
 .mantine-NavLink-root {
   border-radius: var(--mantine-radius-md);
