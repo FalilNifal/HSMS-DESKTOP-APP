@@ -60,6 +60,10 @@ export default function InvoiceModal({ saleId, onClose, onNewSale }: InvoiceModa
 
             <Divider my="xs" variant="dashed" />
 
+            <Text ta="center" size="xs" fw={700} c="dimmed" mb={4} style={{ letterSpacing: '0.28em' }}>
+              SALES RECEIPT
+            </Text>
+
             <Stack gap={2}>
               <ReceiptRow label="Invoice" value={invoice.invoiceNumber} />
               <ReceiptRow label="Date" value={new Date(invoice.createdAt).toLocaleString()} />
@@ -103,9 +107,16 @@ export default function InvoiceModal({ saleId, onClose, onNewSale }: InvoiceModa
               </>
             )}
 
-            <Group justify="space-between">
+            <Group
+              justify="space-between"
+              align="center"
+              mt="xs"
+              px="sm"
+              py={6}
+              style={{ border: '1.5px solid var(--mantine-color-text)', borderRadius: 6 }}
+            >
               <Text fw={700}>TOTAL</Text>
-              <Text fw={700} size="lg">
+              <Text fw={800} size="lg">
                 {formatMoney(invoice.totalAmount)}
               </Text>
             </Group>

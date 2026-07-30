@@ -43,31 +43,41 @@ function buildQuotationHtml(quotation: Quotation, shop: ShopHeader): string {
 <title>${esc(quotation.quotationNumber)}</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Arial, Helvetica, sans-serif; color: #111; padding: 24px 28px; }
+  body { font-family: Arial, Helvetica, sans-serif; color: #111; padding: 28px 30px; border-top: 5px solid #1f2937; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; }
   .shop { font-size: 20px; font-weight: 700; }
   .muted { color: #555; }
   .sm { font-size: 12px; color: #555; }
-  .title { font-size: 16px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #444; margin-top: 12px; }
-  .meta { margin: 12px 0; font-size: 13px; }
-  .row { display: flex; justify-content: space-between; max-width: 320px; padding: 1px 0; }
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-  th { text-align: left; border-bottom: 2px solid #333; padding: 6px 6px; }
-  td { border-bottom: 1px solid #ddd; padding: 6px 6px; vertical-align: top; }
+  .qbadge { text-align: right; }
+  .qtitle { font-size: 22px; font-weight: 800; letter-spacing: 0.06em; color: #1f2937; }
+  .qnum { font-size: 12px; color: #555; margin-top: 2px; }
+  .meta { margin: 16px 0 4px; font-size: 13px; }
+  .row { display: flex; justify-content: space-between; max-width: 300px; padding: 1px 0; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+  th { text-align: left; background: #f3f4f6; border-bottom: 2px solid #333; padding: 7px 8px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: #444; }
+  td { border-bottom: 1px solid #e5e7eb; padding: 7px 8px; vertical-align: top; }
   .num { text-align: right; white-space: nowrap; }
   .sku { font-size: 11px; color: #888; }
-  .total { margin-top: 12px; text-align: right; font-size: 16px; font-weight: 700; }
-  .notes { margin-top: 16px; font-size: 12px; color: #444; }
-  .foot { margin-top: 28px; font-size: 11px; color: #888; text-align: center; }
+  .totalwrap { display: flex; justify-content: flex-end; margin-top: 14px; }
+  .totalbox { min-width: 240px; border: 1.5px solid #1f2937; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; }
+  .notes { margin-top: 18px; font-size: 12px; color: #444; }
+  .foot { margin-top: 30px; font-size: 11px; color: #888; text-align: center; border-top: 1px solid #eee; padding-top: 8px; }
   @page { margin: 14mm; }
 </style>
 </head>
 <body>
-  <div class="shop">${esc(shop.shopName)}</div>
-  ${shop.address ? `<div class="sm">${esc(shop.address)}</div>` : ''}
-  ${shop.phoneNumber ? `<div class="sm">Tel: ${esc(shop.phoneNumber)}</div>` : ''}
-  <div class="title">Quotation</div>
+  <div class="head">
+    <div>
+      <div class="shop">${esc(shop.shopName)}</div>
+      ${shop.address ? `<div class="sm">${esc(shop.address)}</div>` : ''}
+      ${shop.phoneNumber ? `<div class="sm">Tel: ${esc(shop.phoneNumber)}</div>` : ''}
+    </div>
+    <div class="qbadge">
+      <div class="qtitle">QUOTATION</div>
+      <div class="qnum">${esc(quotation.quotationNumber)}</div>
+    </div>
+  </div>
   <div class="meta">
-    <div class="row"><span class="muted">Quotation #</span><span>${esc(quotation.quotationNumber)}</span></div>
     <div class="row"><span class="muted">Date</span><span>${esc(new Date(quotation.createdAt).toLocaleDateString())}</span></div>
     ${quotation.customerName ? `<div class="row"><span class="muted">Customer</span><span>${esc(quotation.customerName)}</span></div>` : ''}
     ${validUntil}
@@ -78,7 +88,7 @@ function buildQuotationHtml(quotation: Quotation, shop: ShopHeader): string {
     </thead>
     <tbody>${rows}</tbody>
   </table>
-  <div class="total">Total: ${esc(formatMoney(quotation.totalAmount))}</div>
+  <div class="totalwrap"><div class="totalbox"><span>Total</span><span>${esc(formatMoney(quotation.totalAmount))}</span></div></div>
   ${notes}
   <div class="foot">This is a quotation, not a tax invoice. Prices are subject to stock availability.</div>
 </body>
