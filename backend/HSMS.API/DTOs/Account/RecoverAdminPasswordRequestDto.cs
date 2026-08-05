@@ -4,9 +4,9 @@ namespace HSMS.API.DTOs.Account
 {
     public class RecoverAdminPasswordRequestDto
     {
-        [Required]
+        /// <summary>Optional — if omitted, the primary (first-created) admin is reset.</summary>
         [MaxLength(50)]
-        public string AdminUsername { get; set; } = string.Empty;
+        public string? AdminUsername { get; set; }
 
         [Required]
         public string RecoveryKey { get; set; } = string.Empty;

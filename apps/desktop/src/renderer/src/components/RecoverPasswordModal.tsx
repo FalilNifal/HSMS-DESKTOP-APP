@@ -18,7 +18,6 @@ export default function RecoverPasswordModal({
   const form = useForm({
     initialValues: { adminUsername: '', recoveryKey: '', newPassword: '', confirmPassword: '' },
     validate: {
-      adminUsername: (v) => (v.trim().length === 0 ? 'Enter the admin username' : null),
       recoveryKey: (v) => (v.trim().length === 0 ? 'Enter your recovery key' : null),
       newPassword: (v) => (v.length < 8 ? 'At least 8 characters' : null),
       confirmPassword: (v, values) => (v !== values.newPassword ? 'Passwords do not match' : null)
@@ -27,11 +26,12 @@ export default function RecoverPasswordModal({
 
   const mutation = useMutation({
     mutationFn: recoverAdminPassword,
-    onSuccess: () => {
+    onSuccess: (data) => {
       notifications.show({
         color: 'teal',
         title: 'Password reset',
-        message: 'You can now sign in with your new password.'
+        message: `Sign in as "${data.username}" with your new password.`,
+        autoClose: 8000
       })
       form.reset()
       onClose()
@@ -54,7 +54,7 @@ export default function RecoverPasswordModal({
       <form
         onSubmit={form.onSubmit((values) =>
           mutation.mutate({
-            adminUsername: values.adminUsername.trim(),
+            adminUsername: values.adminUsername.trim() || undefined,
             recoveryKey: values.recoveryKey.trim(),
             newPassword: values.newPassword
           })
@@ -62,19 +62,20 @@ export default function RecoverPasswordModal({
       >
         <Stack>
           <Alert color="blue" icon={<IconShieldLock size={18} />}>
-            Enter the one-time <b>recovery key</b> you saved during first-time setup to reset the
-            administrator password.
+            Enter the one-time <b>recovery key</b> you saved at first-time setup. You don't need your
+            username — leave it blank and we'll reset the main administrator and show you its
+            username.
           </Alert>
           <TextInput
-            label="Admin username"
-            withAsterisk
-            data-autofocus
+            label="Admin username (optional)"
+            description="Leave blank if you don't remember it"
             {...form.getInputProps('adminUsername')}
           />
           <TextInput
             label="Recovery key"
             placeholder="HSMS-RK-XXXX-XXXX-XXXX-XXXX"
             withAsterisk
+            data-autofocus
             {...form.getInputProps('recoveryKey')}
           />
           <PasswordInput label="New password" withAsterisk {...form.getInputProps('newPassword')} />
